@@ -1,2 +1,2 @@
 # transaction
-Gateway level 2 step transaction management micro services
+Gateway level transaction management micro services
