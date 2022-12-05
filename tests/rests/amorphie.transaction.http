@@ -1,0 +1,3 @@
+
+GET http://localhost:50001/v1.0/invoke/amorphie-transaction/method/transaction/definition?url=%2Ftransfers%2Feft%2Fsimulate
+###
