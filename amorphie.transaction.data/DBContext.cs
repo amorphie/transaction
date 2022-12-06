@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+
 
 
 class TransactionDbContextFactory : IDesignTimeDbContextFactory<TransactionDBContext>
@@ -32,8 +31,8 @@ public class TransactionDBContext : DbContext
             .HasAlternateKey(c => new { c.OrderUrlTemplate, c.Client })
             .HasName("Unique_OrderUrlTemplate");
 
-        modelBuilder.Entity<DataChecker>()
-            .HasKey(e => new { e.TransactionDefinitionId, e.RequestDataPath });
+        modelBuilder.Entity<DataValidator>()
+            .HasKey(e => e.Id);
 
         modelBuilder.Entity<Transaction>()
             .HasKey(e => e.Id);
@@ -50,36 +49,36 @@ public class TransactionDBContext : DbContext
             RequestUrlTemplate = "/transfers/eft/simulate",
             OrderUrlTemplate = "/transfers/eft/execute",
             Client = "Web",
-            Workflow = "transaction-transfer-over-web",
+            Workflow = "transaction-transfer-eft-over-web",
             TTL = 600,
-            SignalRHub = "hub-transaction-transfer-over-web"
+            SignalRHub = "hub-transaction-transfer-eft-over-web"
         });
 
-        modelBuilder.Entity<DataChecker>().HasData(new
+        modelBuilder.Entity<DataValidator>().HasData(new
         {
             Id = Guid.NewGuid(),
             TransactionDefinitionId = EftId,
             RequestDataPath = "$.amount.value",
             OrderDataPath = "$.amount.value",
-            Type = DataChecker.ComparerType.Number
+            Type = DataValidator.ComparerType.Number
         });
 
-        modelBuilder.Entity<DataChecker>().HasData(new
+        modelBuilder.Entity<DataValidator>().HasData(new
         {
             Id = Guid.NewGuid(),
             TransactionDefinitionId = EftId,
             RequestDataPath = "$.target.iban",
             OrderDataPath = "$.target.iban",
-            Type = DataChecker.ComparerType.String
+            Type = DataValidator.ComparerType.String
         });
 
-         modelBuilder.Entity<DataChecker>().HasData(new
+        modelBuilder.Entity<DataValidator>().HasData(new
         {
             Id = Guid.NewGuid(),
             TransactionDefinitionId = EftId,
             RequestDataPath = "$.target.name",
             OrderDataPath = "$.target.name",
-            Type = DataChecker.ComparerType.String
+            Type = DataValidator.ComparerType.String
         });
     }
 }
@@ -96,13 +95,15 @@ public class TransactionDefinition
     public int TTL { get; set; } = 300;
     public string SignalRHub { get; set; } = string.Empty;
 
-    public List<DataChecker>? Checkers { get; set; }
+    public List<DataValidator>? Validators { get; set; }
 
 }
 
 
-public class DataChecker
+public class DataValidator
 {
+    public Guid Id { get; set; }
+
     public Guid TransactionDefinitionId { get; set; }
     public TransactionDefinition? TransactionDefinition { get; set; }
 

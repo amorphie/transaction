@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace amorphie.transaction.data.Migrations
 {
     [DbContext(typeof(TransactionDBContext))]
-    partial class TransactionDBContextModelSnapshot : ModelSnapshot
+    [Migration("20221206110948_setup4")]
+    partial class setup4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,55 +24,45 @@ namespace amorphie.transaction.data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("DataValidator", b =>
+            modelBuilder.Entity("DataComparer", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("TransactionDefinitionId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("RequestDataPath")
+                        .HasColumnType("text");
 
                     b.Property<string>("OrderDataPath")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("RequestDataPath")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("TransactionDefinitionId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("TransactionDefinitionId", "RequestDataPath");
 
-                    b.HasIndex("TransactionDefinitionId");
-
-                    b.ToTable("DataValidator");
+                    b.ToTable("DataComparer");
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("f765ff39-18fe-4312-b965-2ec7e6f18e9c"),
-                            OrderDataPath = "$.amount.value",
+                            TransactionDefinitionId = new Guid("a1a7a3a9-03bc-4fdc-ae46-0115f4cf69e5"),
                             RequestDataPath = "$.amount.value",
-                            TransactionDefinitionId = new Guid("98479237-2230-483a-894b-0d10af4e8086"),
+                            OrderDataPath = "$.amount.value",
                             Type = 1
                         },
                         new
                         {
-                            Id = new Guid("5b1a67ea-db00-44ec-b7dc-7ece385cf98d"),
-                            OrderDataPath = "$.target.iban",
+                            TransactionDefinitionId = new Guid("a1a7a3a9-03bc-4fdc-ae46-0115f4cf69e5"),
                             RequestDataPath = "$.target.iban",
-                            TransactionDefinitionId = new Guid("98479237-2230-483a-894b-0d10af4e8086"),
+                            OrderDataPath = "$.target.iban",
                             Type = 0
                         },
                         new
                         {
-                            Id = new Guid("6cc173f6-6d31-46a2-9d7a-d018f3b3f063"),
-                            OrderDataPath = "$.target.name",
+                            TransactionDefinitionId = new Guid("a1a7a3a9-03bc-4fdc-ae46-0115f4cf69e5"),
                             RequestDataPath = "$.target.name",
-                            TransactionDefinitionId = new Guid("98479237-2230-483a-894b-0d10af4e8086"),
+                            OrderDataPath = "$.target.name",
                             Type = 0
                         });
                 });
@@ -166,7 +159,7 @@ namespace amorphie.transaction.data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("98479237-2230-483a-894b-0d10af4e8086"),
+                            Id = new Guid("a1a7a3a9-03bc-4fdc-ae46-0115f4cf69e5"),
                             Client = "Web",
                             OrderUrlTemplate = "/transfers/eft/execute",
                             RequestUrlTemplate = "/transfers/eft/simulate",
@@ -211,10 +204,10 @@ namespace amorphie.transaction.data.Migrations
                     b.ToTable("TransactionLog");
                 });
 
-            modelBuilder.Entity("DataValidator", b =>
+            modelBuilder.Entity("DataComparer", b =>
                 {
                     b.HasOne("TransactionDefinition", "TransactionDefinition")
-                        .WithMany("Validators")
+                        .WithMany("Checkers")
                         .HasForeignKey("TransactionDefinitionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -246,7 +239,7 @@ namespace amorphie.transaction.data.Migrations
 
             modelBuilder.Entity("TransactionDefinition", b =>
                 {
-                    b.Navigation("Validators");
+                    b.Navigation("Checkers");
                 });
 #pragma warning restore 612, 618
         }

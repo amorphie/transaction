@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace amorphie.transaction.data.Migrations
 {
     [DbContext(typeof(TransactionDBContext))]
-    partial class TransactionDBContextModelSnapshot : ModelSnapshot
+    [Migration("20221206111408_setup5")]
+    partial class setup5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,53 +26,43 @@ namespace amorphie.transaction.data.Migrations
 
             modelBuilder.Entity("DataValidator", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("TransactionDefinitionId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("RequestDataPath")
+                        .HasColumnType("text");
 
                     b.Property<string>("OrderDataPath")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("RequestDataPath")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("TransactionDefinitionId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("TransactionDefinitionId");
+                    b.HasKey("TransactionDefinitionId", "RequestDataPath");
 
                     b.ToTable("DataValidator");
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("f765ff39-18fe-4312-b965-2ec7e6f18e9c"),
-                            OrderDataPath = "$.amount.value",
+                            TransactionDefinitionId = new Guid("4548b5c4-e827-405e-b833-048783076d4b"),
                             RequestDataPath = "$.amount.value",
-                            TransactionDefinitionId = new Guid("98479237-2230-483a-894b-0d10af4e8086"),
+                            OrderDataPath = "$.amount.value",
                             Type = 1
                         },
                         new
                         {
-                            Id = new Guid("5b1a67ea-db00-44ec-b7dc-7ece385cf98d"),
-                            OrderDataPath = "$.target.iban",
+                            TransactionDefinitionId = new Guid("4548b5c4-e827-405e-b833-048783076d4b"),
                             RequestDataPath = "$.target.iban",
-                            TransactionDefinitionId = new Guid("98479237-2230-483a-894b-0d10af4e8086"),
+                            OrderDataPath = "$.target.iban",
                             Type = 0
                         },
                         new
                         {
-                            Id = new Guid("6cc173f6-6d31-46a2-9d7a-d018f3b3f063"),
-                            OrderDataPath = "$.target.name",
+                            TransactionDefinitionId = new Guid("4548b5c4-e827-405e-b833-048783076d4b"),
                             RequestDataPath = "$.target.name",
-                            TransactionDefinitionId = new Guid("98479237-2230-483a-894b-0d10af4e8086"),
+                            OrderDataPath = "$.target.name",
                             Type = 0
                         });
                 });
@@ -166,7 +159,7 @@ namespace amorphie.transaction.data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("98479237-2230-483a-894b-0d10af4e8086"),
+                            Id = new Guid("4548b5c4-e827-405e-b833-048783076d4b"),
                             Client = "Web",
                             OrderUrlTemplate = "/transfers/eft/execute",
                             RequestUrlTemplate = "/transfers/eft/simulate",

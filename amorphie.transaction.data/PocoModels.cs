@@ -11,15 +11,7 @@ public record PostTransactionOrderResponse(WebHeaderCollection headers, dynamic 
 
 public record PostCommand(string url, string scope, string client, string reference, string command, string reason, dynamic requestBody);
 
-public record GetDefinitionResponse(Guid id,
+public record GetDefinitionResponse(Guid id, string requestUrlTemplate, string orderUrlTemplate, string client, string workflow, int ttl, string signalRHub, GetDefinitionValidatorResponse[] validators);
+public record GetDefinitionValidatorResponse(Guid id, string RequestDataPath, string OrderDataPath, DataValidator.ComparerType type);
 
-    string requestUrlTemplate,
-    string orderUrlTemplate,
-    string client,
-    string workflow,
-    int ttl,
-    string signalRHub,
-    GetDefinitionCheckerResponse[] checkers
-);
-
-public record GetDefinitionCheckerResponse(string RequestDataPath, string OrderDataPath, DataChecker.ComparerType type);
+public record PostDefinitionRequest(string requestUrlTemplate, string orderUrlTemplate, string client, string workflow, int ttl, string signalRHub);
