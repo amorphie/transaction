@@ -52,3 +52,20 @@ Content-Type: application/json
   "ttl": 300,
   "signalRHub": "hub-transaction-transfer-wire-over-web"
 }
+###
+
+POST http://localhost:50001/v1.0/invoke/amorphie-transaction/method/transaction/instance/4fa85f64-5717-4562-b3fc-2c963f66afa6/request HTTP/1.1
+Content-Type: application/json
+
+{
+  "url": "/transfers/eft/simulate",
+  "scope": "ugur",
+  "client": "mobile-ib",
+  "reference": "386321546",
+  "user": "3855632656658",
+  "requestBody": {
+                "data1": "data1d",
+                "data2": "data2d",
+                "data3": 3
+                }
+}

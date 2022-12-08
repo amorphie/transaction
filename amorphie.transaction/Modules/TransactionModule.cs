@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 public static class TransactionModule
 {
     const string STATE_STORE = "transaction-cache";
@@ -52,7 +50,7 @@ public static class TransactionModule
        .Produces<GetDefinitionResponse>(StatusCodes.Status200OK)
        .Produces(StatusCodes.Status404NotFound);
 
-        _app.MapPost("/transaction/instance/{transaction-id}/request", ([FromRoute(Name = "transaction-id")] string requestUrl, PostTransactionRequest body) => { })
+        _app.MapPost("/transaction/instance/{transaction-id}/request", requestTransaction)
         .WithOpenApi()
         .WithSummary("Starts a new transaction.")
         .WithDescription("**For Gateway Integration** Use to start new transaction (consent request or simulate).")
@@ -100,6 +98,7 @@ public static class TransactionModule
         [FromServices] TransactionDBContext context
     )
     {
+
         _app.Logger.LogInformation($"getTransactionDefinition is queried with {requestOrOrderUrl}");
 
         var cachedResponse = await client.GetStateAsync<GetDefinitionResponse>(STATE_STORE, requestOrOrderUrl);
@@ -199,6 +198,38 @@ public static class TransactionModule
         }
     }
 
+
+    static async Task<IResult> requestTransaction(
+        [FromRoute(Name = "transaction-id")] string transactionId,
+        [FromBody] PostTransactionRequest body,
+        HttpRequest request,
+        HttpContext httpContext,
+        [FromServices] DaprClient client,
+        [FromServices] TransactionDBContext context
+    )
+    {
+        _app.Logger.LogInformation($"requestTransaction is called with {transactionId}");
+
+        //var toplogy = await client.InvokeBindingAsync<string, dynamic>("zeebe-command", "topology", string.Empty);
+
+        dynamic variables = new ExpandoObject();
+        variables.transactionId = transactionId.ToString();
+        variables.url = body.url;
+        variables.scope = body.scope;
+        variables.client = body.client;
+        variables.reference = body.reference;
+        variables.user = body.user;
+        variables.requestBody = body.requestBody;
+        variables.babam = "dede";
+        
+
+        dynamic data = new ExpandoObject();
+        data.bpmnProcessId = "simple-transaction-flow";
+        data.variables = variables;
+
+        var result = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", data);
+        return Results.Ok(result);
+    }
 
 
     public static IResult GetTransaction(

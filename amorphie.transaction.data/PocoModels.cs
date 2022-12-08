@@ -3,7 +3,7 @@ using System.Net;
 public record GetTransactionResponse(string Name);
 public record GetTransactionStatusResponse(Guid id, TransactionStatus status);
 
-public record PostTransactionRequest(string url, string scope, string client, string reference, dynamic requestBody);
+public record PostTransactionRequest(string url, string scope, string client, string reference, string user, dynamic requestBody);
 public record PostTransactionRequestResponse(string signalrHub, string hubToken, WebHeaderCollection headers, dynamic responseBody);
 
 public record PostTransactionOrder(string url, string scope, string client, string reference, dynamic requestBody);

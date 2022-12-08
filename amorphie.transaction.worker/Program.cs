@@ -1,6 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
 
-
 var client = new DaprClientBuilder().Build();
 var configurations = await client.GetConfiguration("configstore", new List<string>() { "config-amorphie-transaction-db" });
 
@@ -8,12 +7,13 @@ var configurations = await client.GetConfiguration("configstore", new List<strin
 builder.Services.AddDbContext<TransactionDBContext>
     (options => options.UseNpgsql(configurations.Items["config-amorphie-transaction-db"].Value));
 
+
+
 builder.Services.AddDaprClient();
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSignalR();
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
@@ -28,7 +28,7 @@ app.MapSubscribeHandler();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.MapTransactionEndpoints();
+app.MapTransactionWorkersEndpoints();
 
 try
 {
@@ -40,3 +40,4 @@ catch (Exception ex)
 {
     app.Logger.LogCritical(ex, "Aplication is terminated unexpectedly ");
 }
+
