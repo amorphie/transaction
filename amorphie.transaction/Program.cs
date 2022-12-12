@@ -1,8 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
 var client = new DaprClientBuilder().Build();
-var configurations = await client.GetConfiguration("configstore", new List<string>() { "config-amorphie-transaction-db" });
 
+#pragma warning disable 618
+var configurations = await client.GetConfiguration("configstore", new List<string>() { "config-amorphie-transaction-db" });
+#pragma warning restore 618
 
 builder.Services.AddDbContext<TransactionDBContext>
     (options => options.UseNpgsql(configurations.Items["config-amorphie-transaction-db"].Value));

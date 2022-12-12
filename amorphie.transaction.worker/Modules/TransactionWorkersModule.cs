@@ -14,7 +14,7 @@ public static class TransactionWorkersModule
     }
 
 
-    static async Task<IResult> requestReceived(
+    static IResult requestReceived(
         [FromBody] dynamic body,
         HttpRequest request,
         HttpContext httpContext,

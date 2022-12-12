@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Dapr.Client;
+using System.Security.Principal;
 
 var builder = WebApplication.CreateBuilder(args);
 var client = new DaprClientBuilder().Build();
@@ -98,6 +99,8 @@ app.MapPost("/security/createToken",
     var tokenHandler = new JwtSecurityTokenHandler();
     var tokenDescriptor = new SecurityTokenDescriptor
     {
+        // User and key of principal is Transaction ID forever. 
+        Subject = new GenericIdentity(info.transactionId),
         Issuer = JwtIssuer,
         Audience = JwtAudience,
         Claims = new Dictionary<string, object> { { "user", info.user }, { "transactionId", info.transactionId } },
@@ -125,7 +128,7 @@ public class TransactionHub : Hub
     public TransactionHub(ILogger<TransactionHub> logger)
     {
         _logger = logger;
-       
+
     }
 
     public async Task NewMessage(string token, string message) =>
