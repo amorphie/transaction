@@ -7,10 +7,10 @@
     <script>
         const connection = new signalR.HubConnectionBuilder()
             
-            .withUrl("http://localhost:5219/transaction", { 
+            .withUrl("http://localhost:5009/transaction", { 
                 skipNegotiation: true,
 		        transport: signalR.HttpTransportType.WebSockets,
-                accessTokenFactory: () => { return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoic3RyaW5nIiwidHJhbnNhY3Rpb25JZCI6InN0cmluZyIsIm5iZiI6MTY3MDgzNTcxNiwiZXhwIjoxNjcwODcxNzE2LCJpYXQiOjE2NzA4MzU3MTYsImlzcyI6Imh0dHBzOi8vdHJhbnNhY3Rpb24uYW1vcnBoaWUuYnVyZ2FuLmNvbS50ci8iLCJhdWQiOiJodHRwczovL3RyYW5zYWN0aW9uLmFtb3JwaGllLmJ1cmdhbi5jb20udHIvIn0.OhNEPhuRSXU1Tg1gdirgi03oq_BgJczMBmSpy_UVWX8" } })
+                accessTokenFactory: () => { return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoic3RyaW5nIiwidHJhbnNhY3Rpb25JZCI6InN0cmluZyIsIm5iZiI6MTY3MDg1ODE5NCwiZXhwIjoxNjcwODYxNzk0LCJpYXQiOjE2NzA4NTgxOTQsImlzcyI6Imh0dHBzOi8vdHJhbnNhY3Rpb24uYW1vcnBoaWUuYnVyZ2FuLmNvbS50ci8iLCJhdWQiOiJodHRwczovL3RyYW5zYWN0aW9uLmFtb3JwaGllLmJ1cmdhbi5jb20udHIvIn0.u3Cntqt0RK5ZseieuVsseIxtWR1M4AqIIpOQLeD3qjg" } })
             .configureLogging(signalR.LogLevel.Trace)
             .build();
 
