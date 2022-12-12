@@ -13,7 +13,6 @@ public static class TransactionWorkersModule
             .WithTags("Transaction Worker");
     }
 
-
     static IResult requestReceived(
         [FromBody] dynamic body,
         HttpRequest request,
