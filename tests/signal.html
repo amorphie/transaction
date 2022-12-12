@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title></title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            
+            .withUrl("http://localhost:5219/transaction", { 
+                skipNegotiation: true,
+		        transport: signalR.HttpTransportType.WebSockets,
+                accessTokenFactory: () => { return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoic3RyaW5nIiwidHJhbnNhY3Rpb25JZCI6InN0cmluZyIsIm5iZiI6MTY3MDgzNTcxNiwiZXhwIjoxNjcwODcxNzE2LCJpYXQiOjE2NzA4MzU3MTYsImlzcyI6Imh0dHBzOi8vdHJhbnNhY3Rpb24uYW1vcnBoaWUuYnVyZ2FuLmNvbS50ci8iLCJhdWQiOiJodHRwczovL3RyYW5zYWN0aW9uLmFtb3JwaGllLmJ1cmdhbi5jb20udHIvIn0.OhNEPhuRSXU1Tg1gdirgi03oq_BgJczMBmSpy_UVWX8" } })
+            .configureLogging(signalR.LogLevel.Trace)
+            .build();
+
+        connection.on("messageReceived", (token, message) => {
+            console.log(token, message);
+        });
+
+        /*
+        connection.start(function () {
+            
+        });
+        */
+
+        async function start() {
+            try {
+                await connection.start();
+                console.log("SignalR Connected.");
+                connection.invoke("newmessage", "ugur", "test message");
+            } catch (err) {
+                console.log(err);
+                setTimeout(start, 5000);
+            }
+        };
+
+
+
+        connection.onclose(async () => {
+            await start();
+        });
+
+        start();
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>

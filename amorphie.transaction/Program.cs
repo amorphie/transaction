@@ -1,6 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
 
-
 var client = new DaprClientBuilder().Build();
 var configurations = await client.GetConfiguration("configstore", new List<string>() { "config-amorphie-transaction-db" });
 
@@ -13,11 +12,13 @@ builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddSignalR();
+
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
-	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 var app = builder.Build();

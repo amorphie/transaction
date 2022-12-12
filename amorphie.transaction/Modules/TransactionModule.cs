@@ -205,7 +205,7 @@ public static class TransactionModule
         HttpRequest request,
         HttpContext httpContext,
         [FromServices] DaprClient client,
-        [FromServices] TransactionDBContext context
+        [FromServices] TransactionDBContext dbContext
     )
     {
         _app.Logger.LogInformation($"requestTransaction is called with {transactionId}");
@@ -228,6 +228,8 @@ public static class TransactionModule
         data.variables = variables;
 
         var result = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", data);
+
+       
         return Results.Ok(result);
     }
 

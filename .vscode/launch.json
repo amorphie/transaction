@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/amorphie.transaction/bin/Debug/net7.0/amorphie.transaction.dll",
+            "program": "${workspaceFolder}/amorphie.transaction.hub/bin/Debug/net7.0/amorphie.transaction.hub.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/amorphie.transaction",
+            "cwd": "${workspaceFolder}/amorphie.transaction.hub",
             "stopAtEntry": false,
             // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
             "serverReadyAction": {
