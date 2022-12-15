@@ -1,3 +1,8 @@
+using System.Collections.Specialized;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
 public static class TransactionModule
 {
     const string STATE_STORE = "transaction-cache";
@@ -118,7 +123,7 @@ public static class TransactionModule
 
         httpContext.Response.Headers.Add("X-Cache", "Miss");
 
-        var response = new GetDefinitionResponse(definition.Id, definition.RequestUrlTemplate, definition.OrderUrlTemplate, definition.Client, definition.Workflow, definition.TTL, definition.SignalRHub,
+        var response = new GetDefinitionResponse(definition.Id, definition.RequestUrlMethod, definition.RequestUrlTemplate, definition.OrderUrlMethod, definition.OrderUrlTemplate, definition.Client, definition.Workflow, definition.TTL,
             definition.Validators!.Select(c => new GetDefinitionValidatorResponse(c.Id, c.RequestDataPath, c.OrderDataPath, c.Type)).ToArray());
 
 
@@ -146,7 +151,7 @@ public static class TransactionModule
 
         if (definitions.Count() == 0)
         {
-            var newRecord = new TransactionDefinition { Id = Guid.NewGuid(), RequestUrlTemplate = data.requestUrlTemplate, OrderUrlTemplate = data.orderUrlTemplate, Client = data.client, TTL = data.ttl, SignalRHub = data.signalRHub, Workflow = data.workflow };
+            var newRecord = new TransactionDefinition { Id = Guid.NewGuid(), RequestUrlTemplate = data.requestUrlTemplate, OrderUrlTemplate = data.orderUrlTemplate, Client = data.client, TTL = data.ttl, Workflow = data.workflow };
             context!.Definitions!.Add(newRecord);
             context.SaveChanges();
             return Results.Created($"/transaction/definition/{data.requestUrlTemplate}", newRecord);
@@ -160,7 +165,6 @@ public static class TransactionModule
             // Apply update to only changed fields.
             if (data.workflow != null && data.workflow != recordToUpdate.Workflow) { recordToUpdate.Workflow = data.workflow; hasChanges = true; }
             if (data.ttl != recordToUpdate.TTL) { recordToUpdate.TTL = data.ttl; hasChanges = true; }
-            if (data.signalRHub != null && data.signalRHub != recordToUpdate.SignalRHub) { recordToUpdate.SignalRHub = data.signalRHub; hasChanges = true; }
 
 
             if (hasChanges)
@@ -201,33 +205,57 @@ public static class TransactionModule
 
     static async Task<IResult> requestTransaction(
         [FromRoute(Name = "transaction-id")] string transactionId,
-        [FromBody] PostTransactionRequest body,
+        [FromBody] PostTransactionRequest data,
         HttpRequest request,
         HttpContext httpContext,
         [FromServices] DaprClient client,
         [FromServices] TransactionDBContext dbContext
     )
     {
+        var definition = dbContext!.Definitions!
+          .Where(t => (t.RequestUrlMethod == data.method && t.RequestUrlTemplate == data.url && t.Client == data.client))
+          .FirstOrDefault();
+        
+        HttpResponseMessage upHttpResponse;
+        HttpClient httpClient = new();
+
+        if (data.method == TransactionDefinition.MethodType.GET )
+        {
+            upHttpResponse = await httpClient.GetAsync(data.upStreamUrl);
+        } else
+        {
+            JsonContent bodyContent = JsonContent.Create(data.body);
+            upHttpResponse = await httpClient.PostAsJsonAsync(data.upStreamUrl, data.body);
+        }
+
+        var upResponseData = upHttpResponse.Content.ReadFromJsonAsync<dynamic>();
+
+        //return Results.Ok(upHttpResponse);
+
+        //return Results.Ok(upResponseData);
+
+
+
         _app.Logger.LogInformation($"requestTransaction is called with {transactionId}");
 
         //var toplogy = await client.InvokeBindingAsync<string, dynamic>("zeebe-command", "topology", string.Empty);
 
         dynamic variables = new ExpandoObject();
         variables.transactionId = transactionId.ToString();
-        variables.url = body.url;
-        variables.scope = body.scope;
-        variables.client = body.client;
-        variables.reference = body.reference;
-        variables.user = body.user;
-        variables.requestBody = body.requestBody;
+        variables.url = data.url;
+        variables.scope = data.scope;
+        variables.client = data.client;
+        variables.reference = data.reference;
+        variables.user = data.user;
+        variables.requestBody = data.body;
         variables.babam = "dede";
         
 
-        dynamic data = new ExpandoObject();
-        data.bpmnProcessId = "simple-transaction-flow";
-        data.variables = variables;
+        dynamic instanceData = new ExpandoObject();
+        instanceData.bpmnProcessId = "simple-transaction-flow";
+        instanceData.variables = variables;
 
-        var result = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", data);
+        var result = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", instanceData);
 
        
         return Results.Ok(result);

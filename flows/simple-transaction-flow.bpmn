@@ -25,6 +25,7 @@
         <zeebe:taskDefinition type="RequestReceivedWorker" retries="=3" />
         <zeebe:ioMapping>
           <zeebe:input source="=requestBody" target="RequestBody" />
+          <zeebe:input source="" target="InputVariable_1g693de" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1p6fs4r</bpmn:incoming>
@@ -46,16 +47,16 @@
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="152" y="102" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0ke2ll2_di" bpmnElement="Event_0ke2ll2">
-        <dc:Bounds x="922" y="102" width="36" height="36" />
+      <bpmndi:BPMNShape id="Activity_1968aut_di" bpmnElement="Activity_0iwkaay">
+        <dc:Bounds x="650" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1oxgucy_di" bpmnElement="Activity_1qfsm4l">
         <dc:Bounds x="380" y="80" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1968aut_di" bpmnElement="Activity_0iwkaay">
-        <dc:Bounds x="650" y="80" width="100" height="80" />
-        <bpmndi:BPMNLabel />
+      <bpmndi:BPMNShape id="Event_0ke2ll2_di" bpmnElement="Event_0ke2ll2">
+        <dc:Bounds x="1182" y="102" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1p6fs4r_di" bpmnElement="Flow_1p6fs4r">
         <di:waypoint x="188" y="120" />
@@ -63,7 +64,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0ti8iq9_di" bpmnElement="Flow_0ti8iq9">
         <di:waypoint x="750" y="120" />
-        <di:waypoint x="922" y="120" />
+        <di:waypoint x="1182" y="120" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0d6y916_di" bpmnElement="Flow_0d6y916">
         <di:waypoint x="480" y="120" />

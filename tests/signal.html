@@ -11,7 +11,7 @@
             .withUrl("http://localhost:5009/transaction", {
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets,
-                accessTokenFactory: () => { return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjQ3ODE5OTcwLTlkNzktNGRkOC05MjgzLWM4YzEwMWE1NWFiYSIsInVzZXIiOiIzODU1MjA2OTAwOCIsInRyYW5zYWN0aW9uSWQiOiI0NzgxOTk3MC05ZDc5LTRkZDgtOTI4My1jOGMxMDFhNTVhYmEiLCJuYmYiOjE2NzA4NjA5NTAsImV4cCI6MTY3MDg5Njk1MCwiaWF0IjoxNjcwODYwOTUwLCJpc3MiOiJodHRwczovL3RyYW5zYWN0aW9uLmFtb3JwaGllLmJ1cmdhbi5jb20udHIvIiwiYXVkIjoiaHR0cHM6Ly90cmFuc2FjdGlvbi5hbW9ycGhpZS5idXJnYW4uY29tLnRyLyJ9.LWctwBpJfUu0G-6skwEVyhV_gxjTlxCZmGdEfQ8CO7s" }
+                accessTokenFactory: () => { return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjQ3ODE5OTcwLTlkNzktNGRkOC05MjgzLWM4YzEwMWE1NWFiYSIsInVzZXIiOiIzODU1MjA2OTAwOCIsInRyYW5zYWN0aW9uSWQiOiI0NzgxOTk3MC05ZDc5LTRkZDgtOTI4My1jOGMxMDFhNTVhYmEiLCJuYmYiOjE2NzExMTM4NjMsImV4cCI6MTY3MTE0OTg2MywiaWF0IjoxNjcxMTEzODYzLCJpc3MiOiJodHRwczovL3RyYW5zYWN0aW9uLmFtb3JwaGllLmJ1cmdhbi5jb20udHIvIiwiYXVkIjoiaHR0cHM6Ly90cmFuc2FjdGlvbi5hbW9ycGhpZS5idXJnYW4uY29tLnRyLyJ9.Httcqz7HOmMUsfIPSTucY5VpbF1Y8IZ4uDiJamqE7lI" }
             })
             .configureLogging(signalR.LogLevel.Trace)
             .build();

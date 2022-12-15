@@ -46,12 +46,13 @@ public class TransactionDBContext : DbContext
         modelBuilder.Entity<TransactionDefinition>().HasData(new
         {
             Id = EftId,
+            RequestUrlMethod = TransactionDefinition.MethodType.POST,
             RequestUrlTemplate = "/transfers/eft/simulate",
+            OrderUrlMethod = TransactionDefinition.MethodType.POST,
             OrderUrlTemplate = "/transfers/eft/execute",
             Client = "Web",
             Workflow = "transaction-transfer-eft-over-web",
-            TTL = 600,
-            SignalRHub = "hub-transaction-transfer-eft-over-web"
+            TTL = 600
         });
 
         modelBuilder.Entity<DataValidator>().HasData(new
@@ -87,16 +88,18 @@ public class TransactionDefinition
 {
     public Guid Id { get; set; }
 
+    public MethodType RequestUrlMethod { get; set; } = MethodType.POST;
     public string RequestUrlTemplate { get; set; } = string.Empty;
+    public MethodType OrderUrlMethod { get; set; } = MethodType.POST;
     public string OrderUrlTemplate { get; set; } = string.Empty;
     public string Client { get; set; } = string.Empty;
 
     public string Workflow { get; set; } = string.Empty;
     public int TTL { get; set; } = 300;
-    public string SignalRHub { get; set; } = string.Empty;
 
     public List<DataValidator>? Validators { get; set; }
 
+    public enum MethodType { POST, GET }
 }
 
 
@@ -144,7 +147,6 @@ public class Transaction
 
     public DateTime CreatedAt { get; set; }
 }
-
 
 public class TransactionLog
 {
