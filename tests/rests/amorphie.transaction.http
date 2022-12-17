@@ -22,21 +22,11 @@ Content-Type: application/json
     "amount": "1000",
     "source-account": "TR546546546564654546",
     "target-account": "TR213213231123546546"
-  }/*,
-  "headers": [
-      {
-        "key": "Content-Type",
-        "value": [
-          "application/json; charset=utf-8"
-        ]
-      },
-      {
-        "key": "X-Request-Id",
-        "value": [
-          "dsa74dsa45das45546dsasad"
-        ]
-      }
-    ]*/
+  },
+   "headers": {
+    "Content-Type":  "application/json; charset=utf-8",
+    "X-Request-Id": "dsa74dsa45das45546dsasad"
+  }
 }
 
 ###

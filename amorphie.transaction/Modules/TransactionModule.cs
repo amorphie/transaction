@@ -215,9 +215,19 @@ public static class TransactionModule
         var definition = dbContext!.Definitions!
           .Where(t => (t.RequestUrlMethod == data.method && t.RequestUrlTemplate == data.url && t.Client == data.client))
           .FirstOrDefault();
+
+        if (definition == null)
+        {
+            return Results.NotFound("Transaction definition is not found. Please check url is exists in definitions.");
+        }
         
         HttpResponseMessage upHttpResponse;
         HttpClient httpClient = new();
+
+        //data.headers.
+
+        //httpClient.DefaultRequestHeaders.Add();
+
 
         if (data.method == TransactionDefinition.MethodType.GET )
         {
