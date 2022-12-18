@@ -86,20 +86,25 @@ app.UseSwaggerUI();
 
 app.UseCors();
 
-app.MapPost("/security/createToken",
-    [AllowAnonymous]
-(TransactionInfo info) =>
-
+app.MapPost("/security/create-token",
+[AllowAnonymous]
+(PostCreateTransactionHubTokenRequest data) =>
 {
     var tokenHandler = new JwtSecurityTokenHandler();
     var tokenDescriptor = new SecurityTokenDescriptor
     {
         // User and key of principal is Transaction ID forever. 
-        Subject = new GenericIdentity(info.transactionId),
+        Subject = new GenericIdentity(data.transactionId.ToString()),
         Issuer = JwtIssuer,
         Audience = JwtAudience,
-        Claims = new Dictionary<string, object> { { "user", info.user }, { "transactionId", info.transactionId } },
-        Expires = DateTime.UtcNow.AddSeconds(info.ttl),
+        Claims = new Dictionary<string, object> { 
+            { "transactionId", data.transactionId }, 
+            { "definitionId", data.definitionId }, 
+            { "user", data.user }, 
+            { "scope", data.scope }, 
+            { "client", data.client }, 
+            { "reference", data.reference } },
+        Expires = DateTime.UtcNow.AddSeconds(data.ttl),
         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(JwtKey), SecurityAlgorithms.HmacSha256Signature)
     };
     var token = tokenHandler.CreateToken(tokenDescriptor);

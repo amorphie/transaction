@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -204,7 +205,7 @@ public static class TransactionModule
 
 
     static async Task<IResult> requestTransaction(
-        [FromRoute(Name = "transaction-id")] string transactionId,
+        [FromRoute(Name = "transaction-id")] Guid transactionId,
         [FromBody] PostTransactionRequest data,
         HttpRequest request,
         HttpContext httpContext,
@@ -220,19 +221,27 @@ public static class TransactionModule
         {
             return Results.NotFound("Transaction definition is not found. Please check url is exists in definitions.");
         }
-        
+
         HttpResponseMessage upHttpResponse;
         HttpClient httpClient = new();
 
-        //data.headers.
+        httpClient.DefaultRequestHeaders
+            .Accept
+            .Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        //httpClient.DefaultRequestHeaders.Add();
+        foreach (var h in data.headers)
+        {
+            // Do not add special and not required headers.
+            if (h.Key == "Content-Type") continue;
 
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(h.Key, h.Value);
+        }
 
-        if (data.method == TransactionDefinition.MethodType.GET )
+        if (data.method == TransactionDefinition.MethodType.GET)
         {
             upHttpResponse = await httpClient.GetAsync(data.upStreamUrl);
-        } else
+        }
+        else
         {
             JsonContent bodyContent = JsonContent.Create(data.body);
             upHttpResponse = await httpClient.PostAsJsonAsync(data.upStreamUrl, data.body);
@@ -259,16 +268,34 @@ public static class TransactionModule
         variables.user = data.user;
         variables.requestBody = data.body;
         variables.babam = "dede";
-        
 
         dynamic instanceData = new ExpandoObject();
         instanceData.bpmnProcessId = "simple-transaction-flow";
         instanceData.variables = variables;
 
-        var result = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", instanceData);
+        var workflowInstanceResult = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", instanceData);
 
-       
-        return Results.Ok(result);
+        var tokenRequestData = new PostCreateTransactionHubTokenRequest( transactionId, definition.Id, data.scope, data.client, data.user, data.reference, definition.TTL );
+
+        var token = await client.InvokeMethodAsync<PostCreateTransactionHubTokenRequest, string>(HttpMethod.Post, "amorphie-transaction-hub", "security/create-token", tokenRequestData);
+
+        //entity = await client.InvokeMethodAsync<GetEntityResponse>(HttpMethod.Get, "amorphie-tag", $"domain/{domainName}/entity/{entityName}");
+
+        dynamic returnValueTransaction = new ExpandoObject();
+        returnValueTransaction.id = transactionId.ToString();
+        returnValueTransaction.workflow = workflowInstanceResult;
+        returnValueTransaction.token = token;
+
+
+        dynamic returnValue = new ExpandoObject();
+        returnValue.response = upResponseData.Result;
+        returnValue.transaction = returnValueTransaction;
+
+
+
+
+
+        return Results.Ok(returnValue);
     }
 
 
