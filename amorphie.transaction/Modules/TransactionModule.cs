@@ -249,12 +249,6 @@ public static class TransactionModule
 
         var upResponseData = upHttpResponse.Content.ReadFromJsonAsync<dynamic>();
 
-        //return Results.Ok(upHttpResponse);
-
-        //return Results.Ok(upResponseData);
-
-
-
         _app.Logger.LogInformation($"requestTransaction is called with {transactionId}");
 
         //var toplogy = await client.InvokeBindingAsync<string, dynamic>("zeebe-command", "topology", string.Empty);
@@ -279,21 +273,16 @@ public static class TransactionModule
 
         var token = await client.InvokeMethodAsync<PostCreateTransactionHubTokenRequest, string>(HttpMethod.Post, "amorphie-transaction-hub", "security/create-token", tokenRequestData);
 
-        //entity = await client.InvokeMethodAsync<GetEntityResponse>(HttpMethod.Get, "amorphie-tag", $"domain/{domainName}/entity/{entityName}");
-
         dynamic returnValueTransaction = new ExpandoObject();
         returnValueTransaction.id = transactionId.ToString();
         returnValueTransaction.workflow = workflowInstanceResult;
+        returnValueTransaction.hub = "http://localhost:5009/transaction/hub";
         returnValueTransaction.token = token;
-
+        
 
         dynamic returnValue = new ExpandoObject();
         returnValue.response = upResponseData.Result;
         returnValue.transaction = returnValueTransaction;
-
-
-
-
 
         return Results.Ok(returnValue);
     }

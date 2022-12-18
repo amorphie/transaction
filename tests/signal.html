@@ -5,45 +5,8 @@
     <title></title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <script>
-
-        const connection = new signalR.HubConnectionBuilder()
-
-            .withUrl("http://localhost:5009/transaction", {
-                skipNegotiation: true,
-                transport: signalR.HttpTransportType.WebSockets,
-                accessTokenFactory: () => { return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjQ3ODE5OTcwLTlkNzktNGRkOC05MjgzLWM4YzEwMWE1NWFiYSIsInVzZXIiOiIzODU1MjA2OTAwOCIsInRyYW5zYWN0aW9uSWQiOiI0NzgxOTk3MC05ZDc5LTRkZDgtOTI4My1jOGMxMDFhNTVhYmEiLCJuYmYiOjE2NzExMTM4NjMsImV4cCI6MTY3MTE0OTg2MywiaWF0IjoxNjcxMTEzODYzLCJpc3MiOiJodHRwczovL3RyYW5zYWN0aW9uLmFtb3JwaGllLmJ1cmdhbi5jb20udHIvIiwiYXVkIjoiaHR0cHM6Ly90cmFuc2FjdGlvbi5hbW9ycGhpZS5idXJnYW4uY29tLnRyLyJ9.Httcqz7HOmMUsfIPSTucY5VpbF1Y8IZ4uDiJamqE7lI" }
-            })
-            .configureLogging(signalR.LogLevel.Trace)
-            .build();
-
-        connection.on("messageReceived", (token, message) => {
-            console.log(token, message);
-        });
-
-        /*
-        connection.start(function () {
-            
-        });
-        */
-
-        async function start() {
-            try {
-                await connection.start();
-                console.log("SignalR Connected.");
-                connection.invoke("newmessage", "ugur", "test message");
-            } catch (err) {
-                console.log(err);
-                setTimeout(start, 5000);
-            }
-        };
-
-
-
-        connection.onclose(async () => {
-            await start();
-        });
-
-        start();
+        // SignalR hub connection variable
+        var connection = null;
 
         function uuidv4() {
             return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
@@ -57,8 +20,7 @@
             document.getElementById("order-url").innerText = `http://localhost:50001/v1.0/invoke/amorphie-transaction/method/transaction/instance/${transactionId}/order`
         }
 
-        function callRequest()
-        {
+        function callRequest() {
             console.log(document.getElementById("request-url").innerText);
 
             fetch(document.getElementById("request-url").innerText, {
@@ -66,12 +28,54 @@
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin':'*'
+                    'Access-Control-Allow-Origin': '*'
                 },
-                body: '{"url":"/transfers/eft/simulate","scope":"ugur","client":"mobile-ib","reference":"386321546","user":"3855632656658","requestBody":{"data1":"data1d","data2":"data2d","data3":3}}'
+                body: document.getElementById("request-data").textContent //  '{"method":"POST","url":"/transfers/eft/simulate","upStreamUrl":"http://localhost:3010/ps.burgan.com.tr/eft/simulate","scope":"ugur","client":"Web","reference":"386321546","user":"3855632656658","body":{"amount":1000,"source-account":"TR546546546564654546","target-account":"TR213213231123546546"},"queryParams":{"amount":"1000","source-account":"TR546546546564654546","target-account":"TR213213231123546546"},"headers":{"Content-Type":"application/json; charset=utf-8","X-Request-Id":"dsa74dsa45das45546dsasad"}}'
             })
-            .then(response => response.json())
-            .then(response => console.log(JSON.stringify(response)))
+                .then(response => response.json())
+                .then(response => {
+
+                    var responseJSON = response;
+
+                    document.getElementById("request-response").textContent = JSON.stringify(responseJSON, undefined, 2);
+
+                    // Build connection to transaction hub 
+                    const connection = new signalR.HubConnectionBuilder()
+                        .withUrl(responseJSON.transaction.hub, {
+                            skipNegotiation: true,
+                            transport: signalR.HttpTransportType.WebSockets,
+                            accessTokenFactory: () => { return responseJSON.transaction.token }
+                        })
+                        .configureLogging(signalR.LogLevel.Trace)
+                        .build();
+
+
+                    connection.onclose(async () => {
+                        await start();
+                    });
+
+                    connection.on("on-status-changed", (status, reason, details) => {
+                        console.log(`status : ${status}`);
+                        console.log(`reason : ${reason}`);
+                        console.log(`details : ${details}`);
+                        
+                        
+                    });
+
+                    async function start() {
+                        try {
+                            await connection.start();
+                            console.log("SignalR Connected.");
+                        } catch (err) {
+                            console.log(err);
+                            setTimeout(start, 5000);
+                        }
+                    }
+
+                    //start connection
+                    start();
+                });
+
         }
 
         function onload() {
@@ -82,48 +86,50 @@
 </head>
 
 <body onload="onload()">
-    <button onclick="refreshUrls()">Refresh URLs</button>
+    <button onclick="refreshUrls()">(1) Refresh URLs</button>
 
-    <div><b>Target Request Url</b></div>
+    <div><b>Request Url</b></div>
     <div id="request-url"></div>
 
     <div><b>Request Data</b></div>
-    <div id="request-data">
+    <pre id="request-data">
         {
-        "url": "/transfers/eft/simulate",
-        "scope": "ugur",
-        "client": "mobile-ib",
-        "reference": "386321546",
-        "user": "3855632656658",
-        "requestBody": {
-        "data1": "data1d",
-        "data2": "data2d",
-        "data3": 3
-        }
-        }
-    </div>
+            "method": "POST",
+            "url": "/transfers/eft/simulate",
+            "upStreamUrl": "http://localhost:3010/ps.burgan.com.tr/eft/simulate",
+            "scope": "ugur",
+            "client": "Web",
+            "reference": "386321546",
+            "user": "3855632656658",
+            "body": {
+              "amount": 1000,
+              "source-account": "TR546546546564654546",
+              "target-account": "TR213213231123546546"
+            },
+            "queryParams": {
+              "amount": "1000",
+              "source-account": "TR546546546564654546",
+              "target-account": "TR213213231123546546"
+            },
+            "headers": {
+              "Content-Type": "application/json; charset=utf-8",
+              "X-Request-Id": "dsa74dsa45das45546dsasad"
+            }
+          }
+    </pre>
 
-    <button onclick="callRequest()">Call Request</button>
+    <button onclick="callRequest()">(2) Call Request</button>
+
+    <div><b>Request Response</b></div>
+    <pre id="request-response"></pre>
 
 
     <div><b>Order Url</b></div>
     <div id="order-url"></div>
-    
+
     <div><b>Order Data</b></div>
-    <div id="order-data">
-        {
-        "url": "/transfers/eft/simulate",
-        "scope": "ugur",
-        "client": "mobile-ib",
-        "reference": "386321546",
-        "user": "3855632656658",
-        "requestBody": {
-        "data1": "data1d",
-        "data2": "data2d",
-        "data3": 3
-        }
-        }
-    </div>
+    <pre id="order-data"> </pre>
+
 
 
 </body>
