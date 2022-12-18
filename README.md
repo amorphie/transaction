@@ -17,4 +17,11 @@ dapr run --app-id amorphie-transaction-hub  --app-port 5009  --dapr-http-port 50
 ```
 
 
+## Amorphie.Transaction.Worker
+
+To Run
+```
+dapr run --app-id amorphie-transaction-worker  --app-port 5019  --dapr-http-port 50019 --components-path Components dotnet run -- urls=http://localhost:5019/ 
+```
+
 
