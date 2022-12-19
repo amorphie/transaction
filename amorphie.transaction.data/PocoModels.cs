@@ -18,9 +18,29 @@ public record PostTransactionRequest(
     Dictionary<string, string> queryParams,
     JsonNode body);
 
+public record TransactionInstanceRequestData(Guid transactionId, string scope, string client, string reference, string user, dynamic requestBody);
+public record PostTrasnsactionRequestResponse(dynamic response, PostTrasnsactionRequestTransactionResponse transaction);
+public record PostTrasnsactionRequestTransactionResponse(Guid id, dynamic workflow, string hub, string token);
+
+
 public record PostTransactionRequestResponse(string hubToken, WebHeaderCollection headers, dynamic responseBody);
 
-public record PostTransactionOrder(string url, string scope, string client, string reference, dynamic requestBody);
+
+public record PostTransactionOrder(
+    TransactionDefinition.MethodType method,
+    string url,
+    string upStreamUrl,
+    string scope,
+    string client,
+    string reference,
+    string user,
+    Dictionary<string, string> headers,
+    Dictionary<string, string> queryParams,
+    JsonNode body);
+
+
+
+
 public record PostTransactionOrderResponse(WebHeaderCollection headers, dynamic responseBody);
 
 public record PostCommand(string url, string scope, string client, string reference, string command, string reason, dynamic requestBody);
@@ -45,9 +65,9 @@ public record TransactionTokenStatus
     public string? User { get; set; }
     public string? Reference { get; set; }
     public int TTL { get; set; } = 0;
-     public DateTime IssuedAt { get; set; } = DateTime.Now;
-     public DateTime? ExpiryAt { get; set; }
-     public DateTime? ExpiredAt { get; set; } 
-     public DateTime? LastValidatedAt { get; set; } 
+    public DateTime IssuedAt { get; set; } = DateTime.Now;
+    public DateTime? ExpiryAt { get; set; }
+    public DateTime? ExpiredAt { get; set; }
+    public DateTime? LastValidatedAt { get; set; }
 
 };

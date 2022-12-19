@@ -59,15 +59,15 @@ public static class TransactionModule
         _app.MapPost("/transaction/instance/{transaction-id}/request", requestTransaction)
         .WithOpenApi()
         .WithSummary("Starts a new transaction.")
-        .WithDescription("**For Gateway Integration** Use to start new transaction (consent request or simulate).")
+        .WithDescription("**For Gateway Integration** Used to start new transaction (consent request or simulate).")
         .WithTags("Gateway Integration")
         .Produces<PostTransactionRequestResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status204NoContent);
 
-        _app.MapPost("/transaction/instance/{transaction-id}/order", ([FromRoute(Name = "transaction-id")] string requestUrl, PostTransactionOrder body) => { })
+        _app.MapPost("/transaction/instance/{transaction-id}/order", orderTransaction)
         .WithOpenApi()
         .WithSummary("Advance pending transaction.")
-        .WithDescription("**For Gateway Integration** Use to complete requested transaction.")
+        .WithDescription("**For Gateway Integration** Used to complete requested transaction.")
         .WithTags("Gateway Integration")
         .Produces<PostTransactionOrderResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status204NoContent);
@@ -203,7 +203,6 @@ public static class TransactionModule
         }
     }
 
-
     static async Task<IResult> requestTransaction(
         [FromRoute(Name = "transaction-id")] Guid transactionId,
         [FromBody] PostTransactionRequest data,
@@ -253,15 +252,7 @@ public static class TransactionModule
 
         //var toplogy = await client.InvokeBindingAsync<string, dynamic>("zeebe-command", "topology", string.Empty);
 
-        dynamic variables = new ExpandoObject();
-        variables.transactionId = transactionId.ToString();
-        variables.url = data.url;
-        variables.scope = data.scope;
-        variables.client = data.client;
-        variables.reference = data.reference;
-        variables.user = data.user;
-        variables.requestBody = data.body;
-        variables.babam = "dede";
+        var variables = new TransactionInstanceRequestData(transactionId, data.scope, data.client, data.reference, data.user, data.body);
 
         dynamic instanceData = new ExpandoObject();
         instanceData.bpmnProcessId = "simple-transaction-flow";
@@ -269,24 +260,39 @@ public static class TransactionModule
 
         var workflowInstanceResult = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", instanceData);
 
-        var tokenRequestData = new PostCreateTransactionHubTokenRequest( transactionId, definition.Id, data.scope, data.client, data.user, data.reference, definition.TTL );
+        var tokenRequestData = new PostCreateTransactionHubTokenRequest(transactionId, definition.Id, data.scope, data.client, data.user, data.reference, definition.TTL);
 
         var token = await client.InvokeMethodAsync<PostCreateTransactionHubTokenRequest, string>(HttpMethod.Post, "amorphie-transaction-hub", "security/create-token", tokenRequestData);
 
-        dynamic returnValueTransaction = new ExpandoObject();
-        returnValueTransaction.id = transactionId.ToString();
-        returnValueTransaction.workflow = workflowInstanceResult;
-        returnValueTransaction.hub = "http://localhost:5009/transaction/hub";
-        returnValueTransaction.token = token;
-        
-
-        dynamic returnValue = new ExpandoObject();
-        returnValue.response = upResponseData.Result;
-        returnValue.transaction = returnValueTransaction;
+        var returnValue = new PostTrasnsactionRequestResponse(
+            upResponseData.Result,
+            new PostTrasnsactionRequestTransactionResponse(transactionId, workflowInstanceResult,"http://localhost:5009/transaction/hub", token ));
 
         return Results.Ok(returnValue);
     }
 
+
+
+    static async Task<IResult> orderTransaction(
+        [FromRoute(Name = "transaction-id")] Guid transactionId,
+        [FromBody] PostTransactionOrder data,
+        HttpRequest request,
+        HttpContext httpContext,
+        [FromServices] DaprClient client,
+        [FromServices] TransactionDBContext dbContext
+    )
+    {
+        var definition = dbContext!.Definitions!
+          .Where(t => (t.RequestUrlMethod == data.method && t.RequestUrlTemplate == data.url && t.Client == data.client))
+          .FirstOrDefault();
+
+        if (definition == null)
+        {
+            return Results.NotFound("Transaction definition is not found. Please check url is exists in definitions.");
+        }
+
+        return Results.Ok();
+    }
 
     public static IResult GetTransaction(
         [FromRoute(Name = "transaction-id")] Guid transactionId
