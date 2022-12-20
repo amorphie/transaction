@@ -3,11 +3,11 @@ var builder = WebApplication.CreateBuilder(args);
 var client = new DaprClientBuilder().Build();
 
 #pragma warning disable 618
+Thread.Sleep(6000);
 var configurations = await client.GetConfiguration("configstore", new List<string>() { "config-amorphie-transaction-db" });
 #pragma warning restore 618
-
 builder.Services.AddDbContext<TransactionDBContext>
-    (options => options.UseNpgsql(configurations.Items["config-amorphie-transaction-db"].Value));
+   (options => options.UseNpgsql(configurations.Items["config-amorphie-transaction-db"].Value));
 
 builder.Services.AddDaprClient();
 builder.Logging.ClearProviders();
@@ -24,6 +24,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 });
 
 var app = builder.Build();
+
+app.Logger.LogInformation("Db String : "+configurations.Items["config-amorphie-transaction-db"].Value);
+
 
 app.UseCloudEvents();
 app.UseRouting();

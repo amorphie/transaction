@@ -9,7 +9,7 @@ spec:
   - name: jobType
     value: RequestReceivedWorker
   - name: gatewayAddr
-    value: localhost:26500
+    value: zeebe:26500
   - name: gatewayKeepAlive
     value: 45s
   - name: usePlainTextConnection

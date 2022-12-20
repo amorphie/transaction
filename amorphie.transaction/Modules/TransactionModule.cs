@@ -97,7 +97,7 @@ public static class TransactionModule
 
 
     static async Task<IResult> getTransactionDefinition(
-        [FromQuery(Name = "url")] string requestOrOrderUrl,
+        [FromQuery(Name="Url")]string requestOrOrderUrl,
         HttpRequest request,
         HttpContext httpContext,
         [FromServices] DaprClient client,

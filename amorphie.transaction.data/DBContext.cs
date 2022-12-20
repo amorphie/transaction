@@ -9,7 +9,7 @@ class TransactionDbContextFactory : IDesignTimeDbContextFactory<TransactionDBCon
     {
         var builder = new DbContextOptionsBuilder<TransactionDBContext>();
 
-        var connStr = "Host=localhost:5432;Database=transactions;Username=postgres;Password=example";
+        var connStr = "Host=localhost:5432;Database=transactions;Username=postgres;Password=qwerty123";
         builder.UseNpgsql(connStr);
         return new TransactionDBContext(builder.Options);
     }

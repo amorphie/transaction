@@ -1,0 +1,113 @@
+services:
+  amorphie.transaction:
+    image: ${DOCKER_REGISTRY-}amorphie.transaction
+    build:
+      context: .
+      dockerfile: Dockerfile-Transaction
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+      - placement
+    networks:
+      - dapr-network
+  amorphie.transaction.worker:
+    image: ${DOCKER_REGISTRY-}amorphie.transaction.worker
+    build:
+      context: .
+      dockerfile: Dockerfile-Worker
+    ports:
+      - "5001:5001"
+    depends_on:
+      - redis
+      - placement
+    networks:
+      - dapr-network
+  amorphie.transaction.hub:
+    image: ${DOCKER_REGISTRY-}amorphie.transaction.hub
+    build:
+      context: .
+      dockerfile: Dockerfile-Hub
+    ports:
+      - "5002:5002"
+    depends_on:
+      - redis
+      - placement
+    networks:
+      - dapr-network
+  dapr.amorphie.transaction:
+    image: daprio/daprd:latest
+    volumes:
+      - "./amorphie.transaction/Components:/Components"
+    command: [ 
+    "./daprd", 
+    "-app-id", "amorphie.transaction", 
+    "-app-port", "5000", 
+    "-placement-host-address", "placement:50006",
+    "-dapr-http-port", "50012",
+    "-components-path", "/Components"
+    ]
+    depends_on:
+      - amorphie.transaction
+    network_mode: "service:amorphie.transaction"
+  dapr.amorphie.transaction.worker:
+    image: daprio/daprd:latest
+    volumes:
+      - "./amorphie.transaction.worker/Components:/Components"
+    command: [ 
+    "./daprd", 
+    "-app-id", "amorphie.transaction.worker", 
+    "-app-port", "5001", 
+    "-placement-host-address", "placement:50006",
+    "-dapr-http-port", "50012",
+    "-components-path", "/Components"
+    ]
+    depends_on:
+      - amorphie.transaction.worker
+    network_mode: "service:amorphie.transaction.worker"
+  dapr.amorphie.transaction.hub:
+    image: daprio/daprd:latest
+    volumes:
+      - "./amorphie.transaction.hub/Components:/Components"
+    command: [ 
+    "./daprd", 
+    "-app-id", "amorphie.transaction.hub", 
+    "-app-port", "5002", 
+    "-placement-host-address", "placement:50006",
+    "-dapr-http-port", "50012",
+    "-components-path", "/Components"
+    ]
+    depends_on:
+      - amorphie.transaction.hub
+    network_mode: "service:amorphie.transaction.hub"
+  placement:
+    image: "daprio/dapr"
+    command: ["./placement", "-port", "50006"]
+    ports:
+      - "50006:50006"
+    networks:
+      - dapr-network
+  zeebe:
+    image: camunda/zeebe:latest
+    networks:
+      - dapr-network
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"	
+    volumes:
+      - "./redis.sh:/redis.sh"
+    entrypoint: sh -c "/redis.sh"
+    networks:
+      - dapr-network
+  postgre:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=qwerty123
+    ports:
+      - "5432:5432"	
+    networks:
+      - dapr-network
+networks:
+  dapr-network:
+    
