@@ -9,7 +9,7 @@ class TransactionDbContextFactory : IDesignTimeDbContextFactory<TransactionDBCon
     {
         var builder = new DbContextOptionsBuilder<TransactionDBContext>();
 
-        var connStr = "Host=localhost:5432;Database=transactions;Username=postgres;Password=qwerty123";
+        var connStr = "Host=localhost:5432;Database=transactions;Username=postgres;Password=postgres";
         builder.UseNpgsql(connStr);
         return new TransactionDBContext(builder.Options);
     }
@@ -137,15 +137,21 @@ public class Transaction
     public string Status { get; set; } = string.Empty;
     public string StatusReason { get; set; } = string.Empty;
 
+    public string RequestUpStreamUrl{get;set;} = string.Empty;
     public string RequestUpstreamResponse { get; set; } = string.Empty;
+    public string RequestUpstreamBody { get; set; } = string.Empty;
     public string RequestRouteResponse { get; set; } = string.Empty;
 
+    public MethodType OrderUpstreamType{get;set;} = MethodType.POST;
+    public string OrderUpStreamUrl{get;set;} = string.Empty;
     public string OrderUpstreamResponse { get; set; } = string.Empty;
+    public string OrderUpstreamBody { get; set; } = string.Empty;
     public string OrderRouteResponse { get; set; } = string.Empty;
 
     public string? SignalRHubToken { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; }
+    public enum MethodType { POST, GET }
 }
 
 public class TransactionLog

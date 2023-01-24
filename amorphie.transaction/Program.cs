@@ -1,11 +1,14 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Text.Json;
+using SecretExtensions;
 
+var builder = WebApplication.CreateBuilder(args);
+await builder.Configuration.AddVaultSecrets("transaction-secretstore","bbt.gateway.messaging");
 var client = new DaprClientBuilder().Build();
 
 #pragma warning disable 618
-Thread.Sleep(6000);
 var configurations = await client.GetConfiguration("configstore", new List<string>() { "config-amorphie-transaction-db" });
-#pragma warning restore 618
+#pragma warning restore 618 
+
 builder.Services.AddDbContext<TransactionDBContext>
    (options => options.UseNpgsql(configurations.Items["config-amorphie-transaction-db"].Value));
 
@@ -16,6 +19,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSignalR();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.WithOrigins("*")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
@@ -24,10 +37,14 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 });
 
 var app = builder.Build();
+var kk = app.Configuration["id"];
+var conf = app.Configuration;
 
 app.Logger.LogInformation("Db String : "+configurations.Items["config-amorphie-transaction-db"].Value);
 
 
+app.UseTransactionMiddleware();
+app.UseCors();
 app.UseCloudEvents();
 app.UseRouting();
 app.MapSubscribeHandler();
@@ -46,3 +63,6 @@ catch (Exception ex)
 {
     app.Logger.LogCritical(ex, "Aplication is terminated unexpectedly ");
 }
+
+
+        

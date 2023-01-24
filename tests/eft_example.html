@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script>
+        // SignalR hub connection variable
+        var connection = null;
+        var rr = null;
+        var txnId = "";
+        var otpValue = "";
+        var otpInterval = null;
+
+        const simulateUrl = (transactionId) => 
+        {
+            return `http://localhost:42010/v1.0/invoke/amorphie-transaction/method/transaction/instance/${transactionId}/request`;
+        }
+
+        const orderUrl = (transactionId) => 
+        {
+            return `http://localhost:42010/v1.0/invoke/amorphie-transaction/method/transaction/instance/${transactionId}/order`;
+        }
+
+        const commandUrl = (transactionId) => 
+        {
+            return `http://localhost:42010/v1.0/invoke/amorphie-transaction/method/transaction/instance/${transactionId}/command`;
+        }
+
+        function uuidv4() {
+            return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        function form_submit(event){
+            event.preventDefault();
+            const formData = new FormData(form);
+            txnId = uuidv4();
+            var body = {};
+            body.method = 'GET';
+            body.url = '/transfers/eft/simulate';
+            body.upstreamUrl = 'http://localhost:3000/fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN';
+            body.scope = 'Ugur';
+            body.client = 'Web';
+            body.reference = '386321546';
+            body.user = '3855632656658';
+            body.urlParams = [];
+            body.urlParams.push(formData.get('SourceAccount'));
+            body.queryParams = [];
+            body.queryParams.push({Key:'targetIBAN',Value:formData.get('TargetAccount')});
+            body.queryParams.push({Key:'targetFullName',Value:formData.get('TargetFullName')});
+            body.queryParams.push({Key:'amount',Value:formData.get('Amount')});
+            body.headers = [];
+            body.headers.push({Key:'Content-Type',Value:'application/json'});
+            body.headers.push({Key:'channel',Value:'INTERNET'});
+            body.headers.push({Key:'Branch',Value:'2000'});
+            body.headers.push({Key:'user',Value:'EBT\INTERNETUSER'});
+            fetch(simulateUrl(txnId), {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify(body)
+            })
+            .then(response => {
+                if(response.status != 200)
+                {
+                    var parsedResponse = JSON.parse(response);
+                    ShowStep("error-page");
+                    return;
+                }
+            return response;})
+            .then(response => response.json())
+            .then(response => {
+                var upstreamResponse = JSON.parse(response.response);
+                
+                ShowStep("simulate-div");
+                document.getElementById('OrderBankName').value = upstreamResponse.bankName;
+                document.getElementById('OrderAmount').value = upstreamResponse.amount;
+                document.getElementById('OrderExpenses').value = upstreamResponse.expenses[0].amount;
+                document.getElementById('OrderTargetFullName').value = formData.get('TargetFullName');
+                document.getElementById('OrderSourceAccount').value = formData.get('SourceAccount');
+                document.getElementById('OrderTargetAccount').value = formData.get('TargetAccount');
+                var responseJSON = response;
+                // Build connection to transaction hub 
+                const connection = new signalR.HubConnectionBuilder()
+                        .withUrl(responseJSON.transaction.hub, {
+                            skipNegotiation: true,
+                            transport: signalR.HttpTransportType.WebSockets,
+                            accessTokenFactory: () => { return responseJSON.transaction.token }
+                        })
+                        .configureLogging(signalR.LogLevel.Trace)
+                        .build();
+                
+                connection.on("on-status-changed",(status,reason,details) => {
+                    if(status == "SendOtp"){
+                        var submitButton = otpForm.querySelector('[type="submit"]');
+                        submitButton.removeAttribute("disabled");
+                        var timer = 10;
+                        submitButton.innerHTML = 'Approve ('+timer+')';
+                        otpInterval = setInterval(() => {
+                            if(timer != 0)
+                            {
+                                timer = timer - 1;
+                                submitButton.innerHTML = 'Approve ('+timer+')';
+                            }
+                            else
+                            {
+                                submitButton.innerHTML = 'Expired';
+                                submitButton.setAttribute("disabled","disabled");
+                            }
+                        },1000);
+                        ShowStep('send-otp');
+                    }
+                    if(status == "IvrCall")
+                    {
+                        ShowStep('ivr-page');
+                    }
+                    if(status == "TransactionCompleted")
+                    {
+                        ShowStep('success-page');
+                    }
+                });
+
+                async function start() {
+                    try {
+                        await connection.start();
+                        console.log("SignalR Connected.");
+                    } catch (err) {
+                        console.log(err);
+                        setTimeout(start, 5000);
+                    }
+                }
+
+                start();
+            });
+        }
+
+        function otp_submit(event){
+            event.preventDefault();
+            var submitButton = otpForm.querySelector('[type="submit"]');
+            submitButton.innerHTML = "Waiting";
+            submitButton.setAttribute("disabled","disabled");
+            clearInterval(otpInterval);
+            const formData = new FormData(otpForm);
+            
+            var body = {};
+            body.commandType = "ApproveOtp"
+            var details = {};
+            details.OtpValue = otpForm.querySelector('input').value;
+            body.details = details;
+            fetch(commandUrl(txnId), {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify(body)
+            }).then(response => {
+                if(response.status == 409)
+                {
+                    alert("Otp Does Not Match");
+                }
+                if(response.status == 200)
+                {
+                    alert("Otp Success");
+                }
+            });
+            
+        }
+
+        function order_submit(event){
+            event.preventDefault();
+            const formData = new FormData(orderForm);
+
+            var body = {};
+            body.method = 'POST';
+            body.url = '/transfers/eft/execute';
+            body.upstreamUrl = 'http://localhost:3000/fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN';
+            body.scope = 'Ugur';
+            body.client = 'Web';
+            body.reference = '386321546';
+            body.user = '3855632656658';
+            body.body = {};
+            body.body.bankName = formData.get('OrderBankName');
+            body.body.targetIBAN = formData.get('OrderTargetAccount');
+            body.body.targetFullName = formData.get('OrderTargetFullName');
+            body.body.amount = formData.get('OrderAmount');
+            body.body.expenses = formData.get('OrderExpenses');
+            body.body.transferReason = formData.get('TransferReason');
+            body.body.explanation = formData.get('Explanation');
+            
+            body.queryParams = [];
+            body.urlParams = [];
+            body.urlParams.push(formData.get('OrderSourceAccount'));
+            
+            body.headers = [];
+            body.headers.push({Key:'Content-Type',Value:'application/json'});
+            body.headers.push({Key:'channel',Value:'INTERNET'});
+            body.headers.push({Key:'Branch',Value:'2000'});
+            body.headers.push({Key:'user',Value:'EBT\INTERNETUSER'});
+
+            fetch(orderUrl(txnId), {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify(body)
+            })
+        }
+
+        var serializeForm = function (form) {
+            var obj = {};
+            var formData = new FormData(form);
+            for (var key of formData.keys()) {
+                obj[key] = formData.get(key);
+            }
+            return obj;
+        };
+
+        function ShowStep(id){
+            var els = document.getElementsByClassName("step");
+            for(var i=0;i<els.length;i++){
+                if(els[i].id == id){
+                    els[i].classList.add('d-flex');
+                    els[i].classList.remove('d-none');
+                }
+                else{
+                    els[i].classList.add('d-none');
+                    els[i].classList.remove('d-flex');
+                }
+            }
+        }
+
+        function resend_otp(event){
+            event.preventDefault();
+            clearInterval(otpInterval);
+            var body = {};
+            body.commandType = "ReSendOtp"
+            fetch(commandUrl(txnId), {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify(body)
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 center d-flex justify-content-center p-5 step" id="form-div">
+                <form id="simulate-form">
+                    <div class="mb-3">
+                        <label for="SourceAccount" class="form-label">Source Account</label>
+                        <select class="form-control form-select form-select-lg" name="SourceAccount" id="SourceAccount">
+                            <option selected value="TR230006400000111110021035">TR230006400000111110021035</option>
+                            <option value="TR230006400000111110021025">TR230006400000111110021025</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="TargetAccount" class="form-label">Target Account</label>
+                        <input type="text"
+                                class="form-control form-control-sm" name="TargetAccount" id="TargetAccount" aria-describedby="targetAccount" placeholder="">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="TargetFullName" class="form-label">Target Full Name</label>
+                        <input type="text"
+                                class="form-control form-control-sm" name="TargetFullName" id="TargetFullName" aria-describedby="targetFullName" placeholder="">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Amount" class="form-label">Amount</label>
+                        <input type="number"
+                                class="form-control form-control-sm" name="Amount" id="Amount" aria-describedby="amount" placeholder="">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Simulate</button>
+                </form>
+            </div>
+            <div class="col-sm-12 d-none justify-content-center step" id="error-page">
+                
+            </div>
+            <div class="col-sm-12 d-none justify-content-center step" id="ivr-page">
+                Ivr Aramasına Yönlendirileceksiniz....
+            </div>
+            <div class="col-sm-12 d-none justify-content-center step" id="success-page">
+                Eft talebiz alındı.
+            </div>
+            <div class="col-sm-12 d-none justify-content-center step" id="send-otp">
+                <form id="otp-form">
+                    <div class="mb-3">
+                        <label for="Otp" class="form-label">Otp Şifre</label>
+                        <input type="text" 
+                                class="form-control form-control-sm" name="SendOtp" id="SendOtp" aria-describedby="targetAccount" placeholder="">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Approve</button>
+                    <button class="btn btn-primary" id="resend-otp">ReSend Otp</button>
+                </form>
+            </div>
+            <div class="col-12 center d-none justify-content-center p-5 step" id="simulate-div">
+                <form id="order-form">
+                    <div class="mb-3">
+                        <label for="TargetAccount" class="form-label">Source Account</label>
+                        <input type="text" readonly
+                                class="form-control form-control-sm" name="OrderSourceAccount" id="OrderSourceAccount" aria-describedby="targetAccount" placeholder="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="OrderTargetAccount" class="form-label">Target Account</label>
+                        <input type="text" readonly
+                                class="form-control form-control-sm" name="OrderTargetAccount" id="OrderTargetAccount" aria-describedby="orderTargetAccount" placeholder="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="BankName" class="form-label">Target Full Name</label>
+                        <input type="text" readonly
+                                class="form-control form-control-sm" value="" name="OrderTargetFullName" id="OrderTargetFullName" aria-describedby="OrderTargetFullName" placeholder="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="BankName" class="form-label">Bank Name</label>
+                        <input type="text" readonly
+                                class="form-control form-control-sm" value="" name="OrderBankName" id="OrderBankName" aria-describedby="bankname" placeholder="">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="SimulateAmount" class="form-label">Amount</label>
+                        <input type="number" readonly value=""
+                                class="form-control form-control-sm" name="OrderAmount" id="OrderAmount" aria-describedby="simulateamount" placeholder="">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Expenses" class="form-label">Expenses</label>
+                        <input type="text" readonly value=""
+                                class="form-control form-control-sm" name="OrderExpenses" id="OrderExpenses" aria-describedby="expenses" placeholder="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="TransferReason" class="form-label">Transfer Reason</label>
+                        <select class="form-control form-select form-select-lg" name="TransferReason" id="TransferReason">
+                            <option selected value="9">9</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                      <label for="" class="form-label">Explanation</label>
+                      <textarea class="form-control" name="Explanation" id="Explanation" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Order</button>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById('simulate-form');
+        const orderForm = document.getElementById('order-form');
+        const otpForm = document.getElementById('otp-form');
+        const reSendOtpButton = document.getElementById('resend-otp');
+
+        reSendOtpButton.addEventListener('click',resend_otp);
+        otpForm.addEventListener('submit',otp_submit)
+        form.addEventListener('submit',form_submit);
+        orderForm.addEventListener('submit',order_submit);
+    </script>
+</body>
+
+</html>

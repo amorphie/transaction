@@ -1,15 +1,16 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: zeebe-command
+  name: IvrCall
 spec:
-  type: bindings.zeebe.command
+  type: bindings.zeebe.jobworker
   version: v1
   metadata:
+  - name: jobType
+    value: IvrCall
   - name: gatewayAddr
-    value: zeebe:26500
+    value: localhost:26500
   - name: gatewayKeepAlive
     value: 45s
   - name: usePlainTextConnection
     value: true
-

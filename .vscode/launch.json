@@ -2,35 +2,66 @@
     "version": "0.2.0",
     "configurations": [
         {
-            // Use IntelliSense to find out which attributes exist for C# debugging
-            // Use hover for the description of the existing attributes
-            // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
-            "name": ".NET Core Launch (web)",
+            "name": "amorphie-transaction",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
+            "preLaunchTask": "dapr-debug-amorphie-transaction",
+            "program": "${workspaceFolder}/amorphie.transaction/bin/Debug/net7.0/amorphie.transaction.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/amorphie.transaction",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:4200",
+                "DAPR_HTTP_PORT": "42010",
+                "DAPR_GRPC_PORT": "42011"
+            },
+            "postDebugTask": "daprd-down-amorphie-transaction"
+        },
+        {
+            "name": "amorphie-transaction-hub",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "dapr-debug-amorphie-transaction-hub",
             "program": "${workspaceFolder}/amorphie.transaction.hub/bin/Debug/net7.0/amorphie.transaction.hub.dll",
             "args": [],
             "cwd": "${workspaceFolder}/amorphie.transaction.hub",
             "stopAtEntry": false,
-            // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-            },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "ASPNETCORE_URLS": "http://localhost:5009"
+                "ASPNETCORE_URLS": "http://localhost:4201",
+                "DAPR_HTTP_PORT": "42020",
+                "DAPR_GRPC_PORT": "42021"
             },
-            "sourceFileMap": {
-                "/Views": "${workspaceFolder}/Views"
-            }
+            "postDebugTask": "daprd-down-amorphie-transaction-hub"
         },
         {
-            "name": ".NET Core Attach",
+            "name": "amorphie-transaction-worker",
             "type": "coreclr",
-            "request": "attach"
+            "request": "launch",
+            "preLaunchTask": "dapr-debug-amorphie-transaction-worker",
+            "program": "${workspaceFolder}/amorphie.transaction.worker/bin/Debug/net7.0/amorphie.transaction.worker.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/amorphie.transaction.worker",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:4202",
+                "DAPR_HTTP_PORT": "42030",
+                "DAPR_GRPC_PORT": "42031"
+            },
+            "postDebugTask": "daprd-down-amorphie-transaction-worker"
         }
-    ]
+    ],
+    "compounds": [
+        {
+            "name": "Halay Mode",
+            "configurations": [
+                "amorphie-transaction",
+                "amorphie-transaction-hub",
+                "amorphie-transaction-worker"
+            ],
+            "stopAll": true
+        }
+    ],
 }

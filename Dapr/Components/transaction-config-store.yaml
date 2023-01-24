@@ -6,4 +6,4 @@ spec:
   type: configuration.redis
   metadata:
   - name: redisHost
-    value: redis:6379
+    value: localhost:6379

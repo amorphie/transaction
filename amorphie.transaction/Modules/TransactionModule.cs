@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using static Transaction;
 
 public static class TransactionModule
 {
@@ -72,7 +73,7 @@ public static class TransactionModule
         .Produces<PostTransactionOrderResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status204NoContent);
 
-        _app.MapPost("/transaction/instance/{transaction-id}/command", ([FromRoute(Name = "transaction-id")] string requestUrl, PostCommand body) => { })
+        _app.MapPost("/transaction/instance/{transaction-id}/command", commandTransaction)
         .WithOpenApi()
         .WithSummary("Send command messaage to transaction flow.")
         .WithDescription("**For clients and Workflow** Commands are transfered as message to transaction workflow. 3FA, Fraud or external system triggers are implemented as commands.")
@@ -93,7 +94,9 @@ public static class TransactionModule
         .WithTags("Client")
         .Produces<GetTransactionResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status204NoContent);
+
     }
+
 
 
     static async Task<IResult> getTransactionDefinition(
@@ -221,41 +224,105 @@ public static class TransactionModule
             return Results.NotFound("Transaction definition is not found. Please check url is exists in definitions.");
         }
 
+        var transaction = new Transaction(){
+            CreatedAt = DateTime.UtcNow,
+            Id = transactionId,
+            Status = "Initialize",
+            StatusReason = "Transaction is About To Request To Upstream Url",
+            TransactionDefinition = definition
+        };
+
+        await dbContext.Transactions.AddAsync(transaction);
+
         HttpResponseMessage upHttpResponse;
         HttpClient httpClient = new();
 
         httpClient.DefaultRequestHeaders
             .Accept
-            .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            .Add(new MediaTypeWithQualityHeaderValue(data.headers.FirstOrDefault(h => h.Key == "Content-Type").Value));
 
         foreach (var h in data.headers)
         {
-            // Do not add special and not required headers.
-            if (h.Key == "Content-Type") continue;
-
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation(h.Key, h.Value);
+        }
+
+        var generatedUpstreamUrl = data.upStreamUrl;
+
+        if(data.urlParams.Count > 0)
+        {
+            foreach(var urlParam in data.urlParams)
+            {
+                generatedUpstreamUrl += $"/{urlParam}";
+            }
         }
 
         if (data.method == TransactionDefinition.MethodType.GET)
         {
-            upHttpResponse = await httpClient.GetAsync(data.upStreamUrl);
+            if(data.queryParams.Count > 0)
+            {
+                var firstIterate = true;
+                generatedUpstreamUrl += "?";
+                foreach(var queryParam in data.queryParams)
+                {
+                    if(firstIterate)
+                    {
+                        generatedUpstreamUrl += $"{queryParam.Key}={queryParam.Value}";
+                        firstIterate = false;
+                    }
+                    else
+                    {
+                        generatedUpstreamUrl += $"&{queryParam.Key}={queryParam.Value}";
+                    }
+                }
+            }
+            upHttpResponse = await httpClient.GetAsync(generatedUpstreamUrl);
+            
         }
         else
         {
             JsonContent bodyContent = JsonContent.Create(data.body);
-            upHttpResponse = await httpClient.PostAsJsonAsync(data.upStreamUrl, data.body);
+            upHttpResponse = await httpClient.PostAsJsonAsync(generatedUpstreamUrl, data.body);
         }
 
-        var upResponseData = upHttpResponse.Content.ReadFromJsonAsync<dynamic>();
+        try
+        {
+            upHttpResponse.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException ex)
+        {
+            return Results.BadRequest(JsonSerializer.Serialize(new{
+                StatusCode = (int)ex.StatusCode,
+                Message = await upHttpResponse.Content.ReadAsStringAsync()
+            }));
+        }
+
+        var upResponseData = await upHttpResponse.Content.ReadAsStringAsync();
+        transaction.RequestUpstreamResponse = upResponseData;
 
         _app.Logger.LogInformation($"requestTransaction is called with {transactionId}");
 
-        //var toplogy = await client.InvokeBindingAsync<string, dynamic>("zeebe-command", "topology", string.Empty);
+        string requestBody = string.Empty;
+        if(data.method == TransactionDefinition.MethodType.GET)
+        {
+            Dictionary<string,string> jsonValues = new();
+            
+            foreach(var queryParam in data.queryParams)
+            {
+                jsonValues.Add(queryParam.Key,queryParam.Value);
+            }
+            requestBody = JsonSerializer.Serialize(jsonValues);
+        }
+        else
+        {
+            requestBody = data.body.ToJsonString();
+        }
 
-        var variables = new TransactionInstanceRequestData(transactionId, data.scope, data.client, data.reference, data.user, data.body);
+        transaction.RequestUpstreamBody = requestBody;
+
+        var variables = new TransactionInstanceRequestData(transactionId, data.scope, data.client, data.reference, data.user, requestBody);
 
         dynamic instanceData = new ExpandoObject();
-        instanceData.bpmnProcessId = "simple-transaction-flow";
+        instanceData.bpmnProcessId = definition.Workflow;
         instanceData.variables = variables;
 
         var workflowInstanceResult = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", instanceData);
@@ -264,14 +331,14 @@ public static class TransactionModule
 
         var token = await client.InvokeMethodAsync<PostCreateTransactionHubTokenRequest, string>(HttpMethod.Post, "amorphie-transaction-hub", "security/create-token", tokenRequestData);
 
-        var returnValue = new PostTrasnsactionRequestResponse(
-            upResponseData.Result,
-            new PostTrasnsactionRequestTransactionResponse(transactionId, workflowInstanceResult,"http://localhost:5009/transaction/hub", token ));
+        transaction.SignalRHubToken = token;
+
+        var returnValue = new PostTransactionRequestResponse(
+            upResponseData,
+            new PostTransactionRequestTransactionResponse(transactionId, workflowInstanceResult,"http://localhost:4201/transaction/hub", token ));
 
         return Results.Ok(returnValue);
     }
-
-
 
     static async Task<IResult> orderTransaction(
         [FromRoute(Name = "transaction-id")] Guid transactionId,
@@ -282,13 +349,143 @@ public static class TransactionModule
         [FromServices] TransactionDBContext dbContext
     )
     {
-        var definition = dbContext!.Definitions!
-          .Where(t => (t.RequestUrlMethod == data.method && t.RequestUrlTemplate == data.url && t.Client == data.client))
-          .FirstOrDefault();
+        var definition = await dbContext!.Definitions!
+          .Where(t => (t.OrderUrlMethod == data.method && t.OrderUrlTemplate == data.url && t.Client == data.client))
+          .Include(t => t.Validators).FirstOrDefaultAsync();
 
         if (definition == null)
         {
             return Results.NotFound("Transaction definition is not found. Please check url is exists in definitions.");
+        }
+
+        var transaction = await dbContext!.Transactions!.Where(t => t.Id == transactionId).FirstOrDefaultAsync();
+
+        if(transaction == null)
+        {
+            return Results.NotFound("Transaction is not found. Please check transaction is exists in active transactions.");
+        }
+
+        var validateResponse = ValidatorHelper.ValidateRequests(transaction.RequestUpstreamBody,data.body.ToString(),definition.Validators!);
+
+        if(validateResponse.IsSuccess != 1)
+        {
+            return Results.Conflict("Request and Order Parameters are Not Matched. Detail : "+validateResponse.Message);
+        }
+
+        HttpResponseMessage upHttpResponse;
+        HttpClient httpClient = new();
+
+        httpClient.DefaultRequestHeaders
+            .Accept
+            .Add(new MediaTypeWithQualityHeaderValue(data.headers.FirstOrDefault(h => h.Key == "Content-Type").Value));
+
+        foreach (var h in data.headers)
+        {
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(h.Key, h.Value);
+        }
+
+        var generatedUpstreamUrl = data.upStreamUrl;
+
+        if(data.urlParams.Count > 0)
+        {
+            foreach(var urlParam in data.urlParams)
+            {
+                generatedUpstreamUrl += $"/{urlParam}";
+            }
+        }
+
+        if (data.method == TransactionDefinition.MethodType.GET)
+        {
+            if(data.queryParams.Count > 0)
+            {
+                var firstIterate = true;
+                generatedUpstreamUrl += "?";
+                foreach(var queryParam in data.queryParams)
+                {
+                    if(firstIterate)
+                    {
+                        generatedUpstreamUrl += $"{queryParam.Key}={queryParam.Value}";
+                        firstIterate = false;
+                    }
+                    else
+                    {
+                        generatedUpstreamUrl += $"&{queryParam.Key}={queryParam.Value}";
+                    }
+                }
+            }            
+        }
+        else
+        {
+            JsonContent bodyContent = JsonContent.Create(data.body);
+        }
+
+        transaction.OrderUpstreamType = (MethodType)data.method;        
+        transaction.OrderUpStreamUrl = generatedUpstreamUrl;
+        transaction.OrderUpstreamBody = data.body.ToString();
+
+        transaction.Status = "OrderUpstreamRequested";
+        transaction.StatusReason = "Order Upstream Requested Successfully";
+
+        dynamic variables = new ExpandoObject();
+        variables.flowType = "default";
+
+        dynamic messageData = new ExpandoObject();
+        messageData.messageName = "Order";
+        messageData.correlationKey = transactionId;
+        messageData.variables = variables;
+        var messageResult = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "publish-message", messageData);
+
+        return Results.Ok();
+    }
+
+    public static async Task<IResult> commandTransaction([FromServices] DaprClient client,
+        [FromServices] TransactionDBContext dbContext,[FromRoute(Name = "transaction-id")] string transactionId, PostCommand body)
+    {
+        if(body.commandType == CommandType.IvrResponse)
+        {
+            if(body.details["IvrResult"].ToString() == "Success")
+            {
+                dynamic messageData = new ExpandoObject();
+                dynamic variables = new ExpandoObject();
+                messageData.messageName = "IvrResult";
+                messageData.correlationKey = transactionId;
+                variables.IvrResult = body.details["IvrResult"];
+                messageData.variables = variables;
+                var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "publish-message", messageData);
+            }
+        }
+
+        if(body.commandType == CommandType.ApproveOtp)
+        {
+            var cacheKey = transactionId+"|OtpValue";
+            var otpValue = await client.GetStateAsync<string>("transaction-cache",cacheKey);
+            if(otpValue == body.details["OtpValue"].ToString())
+            {
+                dynamic messageData = new ExpandoObject();
+                messageData.messageName = "ValidateOtp";
+                messageData.correlationKey = transactionId;
+                var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "publish-message", messageData);
+            }
+            else
+            {
+                return Results.Conflict("Does Not Match");
+            }
+        }
+
+        if(body.commandType == CommandType.ReSendOtp)
+        {
+            dynamic messageData = new ExpandoObject();
+            messageData.messageName = "ReSentOtp";
+            messageData.correlationKey = transactionId;
+
+            var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "publish-message", messageData);
+        }
+
+        if(body.commandType == CommandType.ZeebeSetVariables)
+        {
+            
+            var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "set-variables", body.details);
+
         }
 
         return Results.Ok();

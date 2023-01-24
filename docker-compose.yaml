@@ -1,113 +1,112 @@
+version: "3.9"
 services:
-  amorphie.transaction:
-    image: ${DOCKER_REGISTRY-}amorphie.transaction
-    build:
-      context: .
-      dockerfile: Dockerfile-Transaction
+  zeebe:
+    image: camunda/zeebe:1.1.0
+    environment:
+      - ZEEBE_LOG_LEVEL=debug
     ports:
-      - "5000:5000"
+      - "26500:26500"
+      - "9600:9600"
+    volumes:
+      - zeebe_data:/usr/local/zeebe/data
+      - ./application.yaml:/usr/local/zeebe/config/application.yaml
     depends_on:
-      - redis
-      - placement
+      - elasticsearch
     networks:
-      - dapr-network
-  amorphie.transaction.worker:
-    image: ${DOCKER_REGISTRY-}amorphie.transaction.worker
-    build:
-      context: .
-      dockerfile: Dockerfile-Worker
+      - bbt-development
+  operate:
+    image: camunda/operate:1.1.0
     ports:
-      - "5001:5001"
+      - "8080:8080"
     depends_on:
-      - redis
-      - placement
+      - zeebe
+      - elasticsearch
+    volumes:
+      - ../lib/application.yml:/usr/local/operate/config/application.yml
     networks:
-      - dapr-network
-  amorphie.transaction.hub:
-    image: ${DOCKER_REGISTRY-}amorphie.transaction.hub
-    build:
-      context: .
-      dockerfile: Dockerfile-Hub
+      - bbt-development
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
     ports:
-      - "5002:5002"
-    depends_on:
-      - redis
-      - placement
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - cluster.name=elasticsearch
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - zeebe_elasticsearch_data:/usr/share/elasticsearch/data
     networks:
-      - dapr-network
-  dapr.amorphie.transaction:
-    image: daprio/daprd:latest
+      - bbt-development
+  redis:
+    container_name: bbt-redis
+    image: redis:latest
+    restart: always
+    ports:
+      - '6379:6379'
+    command: sh -c "/redis.sh"
+    volumes: 
+      - "./redis.sh:/redis.sh"
+    networks:
+      - bbt-development
+
+  redisinsight:
+    container_name: bbt-red-insight
+    image: redislabs/redisinsight:latest
+    ports:
+      - '5501:8001'
     volumes:
-      - "./amorphie.transaction/Components:/Components"
-    command: [ 
-    "./daprd", 
-    "-app-id", "amorphie.transaction", 
-    "-app-port", "5000", 
-    "-placement-host-address", "placement:50006",
-    "-dapr-http-port", "50012",
-    "-components-path", "/Components"
-    ]
-    depends_on:
-      - amorphie.transaction
-    network_mode: "service:amorphie.transaction"
-  dapr.amorphie.transaction.worker:
-    image: daprio/daprd:latest
+      - redisinsight:/db
+    restart: unless-stopped
+    networks:
+      - bbt-development
+
+  postgres:
+    container_name: bbt-postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
     volumes:
-      - "./amorphie.transaction.worker/Components:/Components"
-    command: [ 
-    "./daprd", 
-    "-app-id", "amorphie.transaction.worker", 
-    "-app-port", "5001", 
-    "-placement-host-address", "placement:50006",
-    "-dapr-http-port", "50012",
-    "-components-path", "/Components"
-    ]
-    depends_on:
-      - amorphie.transaction.worker
-    network_mode: "service:amorphie.transaction.worker"
-  dapr.amorphie.transaction.hub:
-    image: daprio/daprd:latest
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - bbt-development
+
+  pgadmin:
+    container_name: bbt-pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "info@info.com"
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
     volumes:
-      - "./amorphie.transaction.hub/Components:/Components"
-    command: [ 
-    "./daprd", 
-    "-app-id", "amorphie.transaction.hub", 
-    "-app-port", "5002", 
-    "-placement-host-address", "placement:50006",
-    "-dapr-http-port", "50012",
-    "-components-path", "/Components"
-    ]
-    depends_on:
-      - amorphie.transaction.hub
-    network_mode: "service:amorphie.transaction.hub"
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5502:80"
+    restart: unless-stopped
+    networks:
+      - bbt-development
+
   placement:
+    container_name: bbt-dapr
     image: "daprio/dapr"
-    command: ["./placement", "-port", "50006"]
+    command: ["./placement", "--port", "50006"]
     ports:
       - "50006:50006"
     networks:
-      - dapr-network
-  zeebe:
-    image: camunda/zeebe:latest
-    networks:
-      - dapr-network
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"	
-    volumes:
-      - "./redis.sh:/redis.sh"
-    entrypoint: sh -c "/redis.sh"
-    networks:
-      - dapr-network
-  postgre:
-    image: postgres:latest
-    environment:
-      - POSTGRES_PASSWORD=qwerty123
-    ports:
-      - "5432:5432"	
-    networks:
-      - dapr-network
+      - bbt-development
+
 networks:
-  dapr-network:
-    
+  bbt-development:
+    external: true
+
+volumes:
+  redis:
+  redisinsight:
+  postgres:
+  pgadmin:
+  zeebe_data:
+  zeebe_elasticsearch_data:

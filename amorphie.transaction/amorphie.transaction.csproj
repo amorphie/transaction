@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>2d3afef0-918a-4931-859c-16bb19b6fd7d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,15 +12,13 @@
     <PackageReference Include="Dapr.AspNetCore" Version="1.9.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-    
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />
+    <PackageReference Include="VaultSharp" Version="1.12.2" />
   </ItemGroup>
 
-  
   <ItemGroup>
     <ProjectReference Include="..\amorphie.transaction.data\amorphie.transaction.data.csproj" />
   </ItemGroup>
-
 
 </Project>

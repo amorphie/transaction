@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Dapr.Client;
 using System.Security.Principal;
-using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 var client = new DaprClientBuilder().Build();
@@ -25,10 +24,9 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         builder =>
         {
-            builder.WithOrigins("http://localhost:5500")
+            builder.WithOrigins("*")
                 .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
+                .AllowAnyMethod();
         });
 });
 
@@ -68,9 +66,9 @@ builder.Services.AddAuthentication(options =>
                 return;
             }
 
-            var tokenStatus = await client.GetStateAsync<TransactionTokenStatus>("transaction-token", transactionId);
+            var tokenStatus = await client.GetStateAsync<TransactionTokenStatus>("transaction-cache", transactionId);
             tokenStatus.LastValidatedAt = DateTime.Now;
-            await client.SaveStateAsync<TransactionTokenStatus>("transaction-token", transactionId, tokenStatus);
+            await client.SaveStateAsync<TransactionTokenStatus>("transaction-cache", transactionId, tokenStatus);
 
             return;
         }
@@ -130,7 +128,7 @@ app.MapPost("/security/create-token",
 
 
     await client.SaveStateAsync<TransactionTokenStatus>(
-        "transaction-token",
+        "transaction-cache",
         data.transactionId.ToString(),
         new TransactionTokenStatus { Token = token, TransactionId = data.transactionId, DefinitionId = data.definitionId, Scope = data.scope, Client = data.client, User = data.user, Reference = data.reference, TTL = data.ttl, ExpiryAt = tokenDescriptor.Expires },
         metadata: new Dictionary<string, string> { { "ttlInSeconds", $"{data.ttl}" } }
@@ -141,18 +139,14 @@ app.MapPost("/security/create-token",
 });
 
 app.MapPost("/transaction/publish-status",
-[AllowAnonymous] async (PostPublishStatusRequest data, IHubContext<TransactionHub> hubContext) =>
+[AllowAnonymous] async Task<IResult> (PostPublishStatusRequest data, IHubContext<TransactionHub> hubContext) =>
 {
-    //await hubContext.Clients.All.SendAsync("on-status-changed", data.status, data.reason, data.details);
-
-    //await hubContext.Clients.
-
     await hubContext.Clients.User(data.id.ToString()).SendAsync("on-status-changed", data.status, data.reason, data.details);
 
-    return Results.Ok();
+    return Results.Ok("");
 });
 
-
+app.UseWhen(context => context.Request.Path.StartsWithSegments("/transaction/publish-status"),app => app.UseMiddleware<TransactionMiddleware>());
 app.MapHub<TransactionHub>("/transaction/hub");
 
 app.Run();
@@ -190,4 +184,32 @@ public class NameUserIdProvider : IUserIdProvider
 {
     public string GetUserId(HubConnectionContext connection) => 
     (connection?.User?.Identity?.Name ?? "");
+}
+
+public class TransactionMiddleware
+{
+    private readonly RequestDelegate _next;
+    public TransactionMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
+        {
+            context.Request.EnableBuffering();
+            var bodyAsText = await new System.IO.StreamReader(context.Request.Body).ReadToEndAsync();
+            context.Request.Body.Position = 0;
+            await _next(context); 
+        }
+        catch (Exception ex)
+        {
+        }
+        finally
+        {
+            
+        }
+    }
+
 }

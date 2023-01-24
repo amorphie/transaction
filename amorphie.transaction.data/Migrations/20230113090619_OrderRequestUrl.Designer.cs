@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace amorphie.transaction.data.Migrations
 {
     [DbContext(typeof(TransactionDBContext))]
-    partial class TransactionDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230113090619_OrderRequestUrl")]
+    partial class OrderRequestUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,26 +53,26 @@ namespace amorphie.transaction.data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("4b5e9645-c5aa-4daa-bba8-e1ea22c036c8"),
+                            Id = new Guid("f87b8cea-3730-462a-9a22-67fba49b7280"),
                             OrderDataPath = "$.amount.value",
                             RequestDataPath = "$.amount.value",
-                            TransactionDefinitionId = new Guid("9e336a53-1a3e-405c-ac08-2715e077d330"),
+                            TransactionDefinitionId = new Guid("032164e8-9320-46c6-a0ae-565927d8334d"),
                             Type = 1
                         },
                         new
                         {
-                            Id = new Guid("8a180276-ea6d-434f-bdc1-02834ca0391f"),
+                            Id = new Guid("2d4fcb00-405c-4bde-be71-cd4953e3535a"),
                             OrderDataPath = "$.target.iban",
                             RequestDataPath = "$.target.iban",
-                            TransactionDefinitionId = new Guid("9e336a53-1a3e-405c-ac08-2715e077d330"),
+                            TransactionDefinitionId = new Guid("032164e8-9320-46c6-a0ae-565927d8334d"),
                             Type = 0
                         },
                         new
                         {
-                            Id = new Guid("634c3b75-6e99-40ce-ae23-92c3080e258d"),
+                            Id = new Guid("1082e95a-ad71-4aca-af40-efb7be2ab063"),
                             OrderDataPath = "$.target.name",
                             RequestDataPath = "$.target.name",
-                            TransactionDefinitionId = new Guid("9e336a53-1a3e-405c-ac08-2715e077d330"),
+                            TransactionDefinitionId = new Guid("032164e8-9320-46c6-a0ae-565927d8334d"),
                             Type = 0
                         });
                 });
@@ -98,9 +101,6 @@ namespace amorphie.transaction.data.Migrations
                     b.Property<string>("OrderUpstreamResponse")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("OrderUpstreamType")
-                        .HasColumnType("integer");
 
                     b.Property<string>("RequestRouteResponse")
                         .IsRequired()
@@ -187,7 +187,7 @@ namespace amorphie.transaction.data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("9e336a53-1a3e-405c-ac08-2715e077d330"),
+                            Id = new Guid("032164e8-9320-46c6-a0ae-565927d8334d"),
                             Client = "Web",
                             OrderUrlMethod = 0,
                             OrderUrlTemplate = "/transfers/eft/execute",

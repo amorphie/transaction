@@ -1,14 +1,16 @@
-
-GET http://localhost:50001/v1.0/invoke/amorphie-transaction/method/transaction/definition?url=%2Ftransfers%2Feft%2Fsimulate
+GET http://localhost:51010/v1.0/invoke/amorphie-transaction/method/transaction/instance/b2fbd5cb-1922-4b40-8aae-721e89ae4af2/complete
 ###
 
-POST http://localhost:50001/v1.0/invoke/amorphie-transaction/method/transaction/instance/{{$guid}}/request HTTP/1.1
+GET http://localhost:51010/v1.0/invoke/amorphie-transaction/method/transaction/definition?url=%2Ftransfers%2Feft%2Fsimulate
+###
+
+POST http://localhost:51010/v1.0/invoke/amorphie-transaction/method/transaction/instance/{{$guid}}/request HTTP/1.1
 Content-Type: application/json
 
 {
   "method": "POST",
   "url": "/transfers/eft/simulate",
-  "upStreamUrl": "http://localhost:3010/ps.burgan.com.tr/eft/simulate",
+  "upStreamUrl": "http://localhost:3000/ps.burgan.com.tr/eft/simulate",
   "scope": "ugur",
   "client": "Web",
   "reference": "386321546",

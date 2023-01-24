@@ -2,7 +2,45 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "update-database",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "ef",
+                "database",
+                "update",
+                "--project", "${workspaceFolder}/amorphie.transaction.data/amorphie.transaction.data.csproj"
+            ],
+            "problemMatcher": "$tsc",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "label": "init-mocks",
+            "type": "shell",
+            "command": "docker run --name amorphie-transaction-mocks -d -v ${workspaceFolder}/tests/mocks/mocks.json:/data  -p 3000:3000 mockoon/cli:latest -d data -p 3000"
+        },
+        {
+            "label": "stop-mocks",
+            "type": "shell",
+            "command": "docker rm -f amorphie-transaction-mocks"
+        },
+        {
+            "label": "build-amorphie-transaction",
+            //"dependsOn": "init-mocks",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/amorphie.transaction/amorphie.transaction.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build-amorphie-transaction-hub",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -14,28 +52,62 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "publish",
+            "label": "build-amorphie-transaction-worker",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "publish",
-                "${workspaceFolder}/amorphie.transaction.hub/amorphie.transaction.hub.csproj",
+                "build",
+                "${workspaceFolder}/amorphie.transaction.worker/amorphie.transaction.worker.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "watch",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "watch",
-                "run",
-                "--project",
-                "${workspaceFolder}/amorphie.transaction.hub/amorphie.transaction.hub.csproj"
-            ],
-            "problemMatcher": "$msCompile"
+            "appId": "amorphie-transaction",
+            "appPort": 4200,
+            "httpPort": 42010,
+            "grpcPort": 42011,
+            "label": "dapr-debug-amorphie-transaction",
+            "type": "dapr",
+            "dependsOn": "build-amorphie-transaction",
+            "componentsPath": "Dapr/Components"
+        },
+        {
+            "appId": "amorphie-transaction-hub",
+            "appPort": 4201,
+            "httpPort": 42020,
+            "grpcPort": 42021,
+            "label": "dapr-debug-amorphie-transaction-hub",
+            "type": "dapr",
+            "dependsOn": "build-amorphie-transaction-hub",
+            "componentsPath": "Dapr/Components"
+        },
+        {
+            "appId": "amorphie-transaction-worker",
+            "appPort": 4202,
+            "httpPort": 42030,
+            "grpcPort": 42031,
+            "label": "dapr-debug-amorphie-transaction-worker",
+            "type": "dapr",
+            "dependsOn": "build-amorphie-transaction-worker",
+            "componentsPath": "Dapr/Components"
+        },
+        {
+            "appId": "amorphie-transaction",
+            "label": "daprd-down-amorphie-transaction",
+            "type": "daprd-down",
+            "dependsOn": "stop-mocks",
+        },
+        {
+            "appId": "amorphie-transaction-hub",
+            "label": "daprd-down-amorphie-transaction-hub",
+            "type": "daprd-down"
+        },
+        {
+            "appId": "amorphie-transaction-worker",
+            "label": "daprd-down-amorphie-transaction-worker",
+            "type": "daprd-down"
         }
     ]
 }

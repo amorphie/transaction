@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json.Nodes;
 
+public record KeyVal(string Key,String Value);
 public record GetTransactionResponse(string Name);
 public record GetTransactionStatusResponse(Guid id, TransactionStatus status);
 
@@ -14,16 +15,17 @@ public record PostTransactionRequest(
     string client,
     string reference,
     string user,
-    Dictionary<string, string> headers,
-    Dictionary<string, string> queryParams,
+    List<KeyVal> headers,
+    List<KeyVal> queryParams,
+    List<string> urlParams,
     JsonNode body);
 
 public record TransactionInstanceRequestData(Guid transactionId, string scope, string client, string reference, string user, dynamic requestBody);
-public record PostTrasnsactionRequestResponse(dynamic response, PostTrasnsactionRequestTransactionResponse transaction);
-public record PostTrasnsactionRequestTransactionResponse(Guid id, dynamic workflow, string hub, string token);
+public record PostTransactionRequestResponse(dynamic response, PostTransactionRequestTransactionResponse transaction);
+public record PostTransactionRequestTransactionResponse(Guid id, dynamic workflow, string hub, string token);
 
 
-public record PostTransactionRequestResponse(string hubToken, WebHeaderCollection headers, dynamic responseBody);
+public record PostTransactionRequestHubResponse(string hubToken, WebHeaderCollection headers, dynamic responseBody);
 
 
 public record PostTransactionOrder(
@@ -34,16 +36,15 @@ public record PostTransactionOrder(
     string client,
     string reference,
     string user,
-    Dictionary<string, string> headers,
-    Dictionary<string, string> queryParams,
+    List<KeyVal> headers,
+    List<KeyVal> queryParams,
+    List<string> urlParams,
     JsonNode body);
-
-
 
 
 public record PostTransactionOrderResponse(WebHeaderCollection headers, dynamic responseBody);
 
-public record PostCommand(string url, string scope, string client, string reference, string command, string reason, dynamic requestBody);
+public record PostCommand(CommandType commandType,Dictionary<string,dynamic> details);
 
 public record GetDefinitionResponse(Guid id, TransactionDefinition.MethodType requestUrlMethod, string requestUrlTemplate, TransactionDefinition.MethodType orderUrlMethod, string orderUrlTemplate, string client, string workflow, int ttl, GetDefinitionValidatorResponse[] validators);
 public record GetDefinitionValidatorResponse(Guid id, string RequestDataPath, string OrderDataPath, DataValidator.ComparerType type);
@@ -71,3 +72,11 @@ public record TransactionTokenStatus
     public DateTime? LastValidatedAt { get; set; }
 
 };
+
+public enum CommandType
+{
+    ApproveOtp = 0,
+    ReSendOtp = 1,
+    ZeebeSetVariables = 2,
+    IvrResponse = 3
+}
