@@ -28,7 +28,7 @@
         },
         {
             "label": "build-amorphie-transaction",
-            //"dependsOn": "init-mocks",
+            "dependsOn": "init-mocks",
             "command": "dotnet",
             "type": "process",
             "args": [

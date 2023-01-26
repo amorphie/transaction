@@ -1,179 +1,195 @@
 {
-  "uuid": "04e45b9c-7505-4ca9-b2ac-87582dd12ad0",
+  "uuid": "3e314dd1-010d-4ffe-8fa4-bc98ec9b7f6b",
   "lastMigration": 24,
-  "name": "transaction",
+  "name": "Transaction Mock API",
   "endpointPrefix": "",
   "latency": 0,
-  "port": 3010,
+  "port": 3000,
   "hostname": "0.0.0.0",
   "routes": [
-    {
-      "method":"get",
-      "endpoint":"eft/simulate",
-      "responses":[{
-        "uuid":"04e45b9c-7505-4ca9-b2ac-87582dd12ad0",
-        "body":"{test:test}",
-        "statusCode": 200,
-          "label": "Returns user info",
-          "headers": []
-      }]
-    },
-    {
-      "uuid": "a8b7ca2d-24ec-4177-a0e0-5e9530e1d22f",
-      "documentation": "",
-      "method": "get",
-      "endpoint": "fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN/:SourceAccount",
-      "responses": [
-          {
-              "uuid": "147b3a7d-1f63-493f-aeea-35965cd60eff",
-              "body": "{\n  \"res\" : \"misssing headers\"\n}",
-              "latency": 0,
-              "statusCode": 400,
-              "label": "",
-              "headers": [
-                  {
-                      "key": "",
-                      "value": ""
-                  }
-              ],
-              "bodyType": "INLINE",
-              "filePath": "",
-              "databucketID": "",
-              "sendFileAsBody": false,
-              "rules": [
-                  {
-                      "target": "header",
-                      "modifier": "channel",
-                      "value": "\"INTERNET\"",
-                      "invert": true,
-                      "operator": "equals"
-                  },
-                  {
-                      "target": "header",
-                      "modifier": "user",
-                      "value": "\"EBT\\INTERNETUSER\"",
-                      "invert": true,
-                      "operator": "equals"
-                  },
-                  {
-                      "target": "header",
-                      "modifier": "Branch",
-                      "value": "2000",
-                      "invert": true,
-                      "operator": "equals"
-                  }
-              ],
-              "rulesOperator": "AND",
-              "disableTemplating": false,
-              "fallbackTo404": false,
-              "default": false
-          },
-          {
-              "uuid": "a6b30157-2bfe-4996-ba45-df912264aebd",
-              "body": "{\r\n    \"amount\": 5,\r\n    \"bankName\": \"T.IŞ BANKASI A.S.\",\r\n    \"credits\": [\r\n        {\r\n            \"amount\": 0,\r\n            \"interestRate\": 0,\r\n            \"name\": \"\"\r\n        }\r\n    ],\r\n    \"date\": \"2023-01-09T00:00:00.000000\",\r\n    \"expenses\": [\r\n        {\r\n            \"amount\": 1.05,\r\n            \"client\": \"20089057\",\r\n            \"currencyCode\": \"TRY\",\r\n            \"name\": \"EFT Masrafı\",\r\n            \"ratio\": 0\r\n        }\r\n    ],\r\n    \"finalBalance\": 15122554166.73,\r\n    \"initialBalance\": 15122554171.73\r\n}",
-              "latency": 0,
-              "statusCode": 200,
-              "label": "",
-              "headers": [],
-              "bodyType": "INLINE",
-              "filePath": "",
-              "databucketID": "",
-              "sendFileAsBody": false,
-              "rules": [],
-              "rulesOperator": "OR",
-              "disableTemplating": false,
-              "fallbackTo404": false,
-              "default": true
-          }
-      ],
-      "enabled": true,
-      "responseMode": null
-    },
-    {
-      "uuid": "29be6276-629f-4eb3-b058-6465605ac2f0",
-      "documentation": "",
-      "method": "post",
-      "endpoint": "fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN/:SourceAccount",
-      "responses": [
-          {
-              "uuid": "8965c23a-72a0-40d4-90a0-c852b21ed344",
-              "body": "{\r\n    \"EFTNumber\": \"396\",\r\n    \"FraudStatus\": \"S\",\r\n    \"amount\": 5,\r\n    \"credits\": [],\r\n    \"date\": \"2023-01-09T00:00:00.000000\",\r\n    \"expenses\": [\r\n        {\r\n            \"amount\": 1.05,\r\n            \"client\": \"20089057\",\r\n            \"currencyCode\": \"TRY\",\r\n            \"name\": \"EFT Masrafı\",\r\n            \"ratio\": 0\r\n        }\r\n    ],\r\n    \"finalBalance\": 64592.89,\r\n    \"initialBalance\": 64597.89,\r\n    \"sequenceId\": \"689296655\",\r\n    \"transferType\": \"eft\"\r\n}",
-              "latency": 0,
-              "statusCode": 200,
-              "label": "",
-              "headers": [],
-              "bodyType": "INLINE",
-              "filePath": "",
-              "databucketID": "",
-              "sendFileAsBody": false,
-              "rules": [],
-              "rulesOperator": "OR",
-              "disableTemplating": false,
-              "fallbackTo404": false,
-              "default": true
-          }
-      ],
-      "enabled": true,
-      "responseMode": null
-    },
-    {
-      "uuid": "da60104c-d8f1-4051-a17a-553768a2fbc1",
-      "documentation": "Generate random body (JSON, text, CSV, etc) with templating",
-      "method": "post",
-      "endpoint": "ps.burgan.com.tr/eft/simulate",
-      "responses": [
-        {
-          "uuid": "6b372029-3ed4-4d2f-96c6-64654f561c1f",
-          "body": "{{setVar 'total' (body 'amount')}}\n\n{\n  \"amount\" : {{ body 'amount' }},\n  \"source-account\":  \"{{ body 'source-account' }}\",\n  \"target-account\":  \"{{ body 'target-account' }}\",\n  \"expenses\": 40,\n  \"total\": \"{{ add @total 40 }}\"\n}",
-          "latency": 0,
-          "statusCode": 200,
-          "label": "Returns user info",
-          "headers": [],
-          "bodyType": "INLINE",
-          "filePath": "",
-          "databucketID": "",
-          "sendFileAsBody": false,
-          "rules": [],
-          "rulesOperator": "OR",
-          "disableTemplating": false,
-          "fallbackTo404": false,
-          "default": true
-        }
-      ],
-      "enabled": true,
-      "responseMode": null
-    }
+      {
+          "uuid": "a8b7ca2d-24ec-4177-a0e0-5e9530e1d22f",
+          "documentation": "",
+          "method": "get",
+          "endpoint": "fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN/:SourceAccount",
+          "responses": [
+              {
+                  "uuid": "147b3a7d-1f63-493f-aeea-35965cd60eff",
+                  "body": "{\n  \"res\" : \"misssing headers\"\n}",
+                  "latency": 0,
+                  "statusCode": 400,
+                  "label": "",
+                  "headers": [
+                      {
+                          "key": "",
+                          "value": ""
+                      }
+                  ],
+                  "bodyType": "INLINE",
+                  "filePath": "",
+                  "databucketID": "",
+                  "sendFileAsBody": false,
+                  "rules": [
+                      {
+                          "target": "header",
+                          "modifier": "channel",
+                          "value": "\"INTERNET\"",
+                          "invert": true,
+                          "operator": "equals"
+                      },
+                      {
+                          "target": "header",
+                          "modifier": "user",
+                          "value": "\"EBT\\INTERNETUSER\"",
+                          "invert": true,
+                          "operator": "equals"
+                      },
+                      {
+                          "target": "header",
+                          "modifier": "Branch",
+                          "value": "2000",
+                          "invert": true,
+                          "operator": "equals"
+                      }
+                  ],
+                  "rulesOperator": "AND",
+                  "disableTemplating": false,
+                  "fallbackTo404": false,
+                  "default": false
+              },
+              {
+                  "uuid": "a6b30157-2bfe-4996-ba45-df912264aebd",
+                  "body": "{\r\n    \"amount\": {{queryParam 'amount'}},\r\n    \"bankName\": \"T.IŞ BANKASI A.S.\",\r\n    \"credits\": [\r\n        {\r\n            \"amount\": 0,\r\n            \"interestRate\": 0,\r\n            \"name\": \"\"\r\n        }\r\n    ],\r\n    \"date\": \"2023-01-09T00:00:00.000000\",\r\n    \"expenses\": [\r\n        {\r\n            \"amount\": 1.05,\r\n            \"client\": \"20089057\",\r\n            \"currencyCode\": \"TRY\",\r\n            \"name\": \"EFT Masrafı\",\r\n            \"ratio\": 0\r\n        }\r\n    ],\r\n    \"finalBalance\": 15122554166.73,\r\n    \"initialBalance\": 15122554171.73\r\n}",
+                  "latency": 0,
+                  "statusCode": 200,
+                  "label": "",
+                  "headers": [],
+                  "bodyType": "INLINE",
+                  "filePath": "",
+                  "databucketID": "",
+                  "sendFileAsBody": false,
+                  "rules": [],
+                  "rulesOperator": "OR",
+                  "disableTemplating": false,
+                  "fallbackTo404": false,
+                  "default": true
+              }
+          ],
+          "enabled": true,
+          "responseMode": null
+      },
+      {
+          "uuid": "29be6276-629f-4eb3-b058-6465605ac2f0",
+          "documentation": "",
+          "method": "post",
+          "endpoint": "fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN/:SourceAccount",
+          "responses": [
+              {
+                  "uuid": "8965c23a-72a0-40d4-90a0-c852b21ed344",
+                  "body": "{\r\n    \"EFTNumber\": \"396\",\r\n    \"FraudStatus\": \"S\",\r\n    \"amount\": 5,\r\n    \"credits\": [],\r\n    \"date\": \"2023-01-09T00:00:00.000000\",\r\n    \"expenses\": [\r\n        {\r\n            \"amount\": 1.05,\r\n            \"client\": \"20089057\",\r\n            \"currencyCode\": \"TRY\",\r\n            \"name\": \"EFT Masrafı\",\r\n            \"ratio\": 0\r\n        }\r\n    ],\r\n    \"finalBalance\": 64592.89,\r\n    \"initialBalance\": 64597.89,\r\n    \"sequenceId\": \"689296655\",\r\n    \"transferType\": \"eft\"\r\n}",
+                  "latency": 0,
+                  "statusCode": 200,
+                  "label": "",
+                  "headers": [],
+                  "bodyType": "INLINE",
+                  "filePath": "",
+                  "databucketID": "",
+                  "sendFileAsBody": false,
+                  "rules": [],
+                  "rulesOperator": "OR",
+                  "disableTemplating": false,
+                  "fallbackTo404": false,
+                  "default": true
+              }
+          ],
+          "enabled": true,
+          "responseMode": null
+      },
+      {
+          "uuid": "8b795a66-d4b9-49ac-982c-11f4dd4f1d0b",
+          "documentation": "",
+          "method": "post",
+          "endpoint": "fraud",
+          "responses": [
+              {
+                  "uuid": "27b56fe1-49cb-4450-bb33-3e1da8eebb7f",
+                  "body": "{\n  \"fraudResult\" : \"IVR\"\n}",
+                  "latency": 0,
+                  "statusCode": 200,
+                  "label": "",
+                  "headers": [],
+                  "bodyType": "INLINE",
+                  "filePath": "",
+                  "databucketID": "",
+                  "sendFileAsBody": false,
+                  "rules": [],
+                  "rulesOperator": "OR",
+                  "disableTemplating": false,
+                  "fallbackTo404": false,
+                  "default": true
+              }
+          ],
+          "enabled": true,
+          "responseMode": null
+      },
+      {
+          "uuid": "7f4cab00-d162-496f-bf1c-ec43c738a8ce",
+          "documentation": "",
+          "method": "post",
+          "endpoint": "otp",
+          "responses": [
+              {
+                  "uuid": "9f9841bc-4cdb-439f-94c5-c74f4e582e63",
+                  "body": "{\n  \"Status\":\"Success\"\n}",
+                  "latency": 0,
+                  "statusCode": 200,
+                  "label": "",
+                  "headers": [],
+                  "bodyType": "INLINE",
+                  "filePath": "",
+                  "databucketID": "",
+                  "sendFileAsBody": false,
+                  "rules": [],
+                  "rulesOperator": "OR",
+                  "disableTemplating": false,
+                  "fallbackTo404": false,
+                  "default": true
+              }
+          ],
+          "enabled": true,
+          "responseMode": null
+      }
   ],
   "proxyMode": false,
   "proxyHost": "",
   "proxyRemovePrefix": false,
   "tlsOptions": {
-    "enabled": false,
-    "type": "CERT",
-    "pfxPath": "",
-    "certPath": "",
-    "keyPath": "",
-    "caPath": "",
-    "passphrase": ""
+      "enabled": false,
+      "type": "CERT",
+      "pfxPath": "",
+      "certPath": "",
+      "keyPath": "",
+      "caPath": "",
+      "passphrase": ""
   },
   "cors": true,
   "headers": [
-    {
-      "key": "Content-Type",
-      "value": "application/json"
-    }
+      {
+          "key": "Content-Type",
+          "value": "application/json"
+      }
   ],
   "proxyReqHeaders": [
-    {
-      "key": "",
-      "value": ""
-    }
+      {
+          "key": "",
+          "value": ""
+      }
   ],
   "proxyResHeaders": [
-    {
-      "key": "",
-      "value": ""
-    }
+      {
+          "key": "",
+          "value": ""
+      }
   ],
   "data": []
 }

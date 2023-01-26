@@ -13,7 +13,7 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - bbt-development
+      - zeebe_network
   operate:
     image: camunda/operate:1.1.0
     ports:
@@ -22,9 +22,9 @@ services:
       - zeebe
       - elasticsearch
     volumes:
-      - ../lib/application.yml:/usr/local/operate/config/application.yml
+      - ./lib/application.yml:/usr/local/operate/config/application.yml
     networks:
-      - bbt-development
+      - zeebe_network
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
     ports:
@@ -36,7 +36,7 @@ services:
     volumes:
       - zeebe_elasticsearch_data:/usr/share/elasticsearch/data
     networks:
-      - bbt-development
+      - zeebe_network
   redis:
     container_name: bbt-redis
     image: redis:latest
@@ -102,6 +102,7 @@ services:
 networks:
   bbt-development:
     external: true
+  zeebe_network:
 
 volumes:
   redis:
