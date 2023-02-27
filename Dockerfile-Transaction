@@ -15,6 +15,6 @@ RUN dotnet publish "./amorphie.transaction/amorphie.transaction.csproj" -c Relea
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-EXPOSE 5001
-ENV ASPNETCORE_URLS=http://+:5001
+EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:5000
 ENTRYPOINT ["dotnet", "amorphie.transaction.dll"]
