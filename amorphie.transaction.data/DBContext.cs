@@ -1,14 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-
-
+using Microsoft.Extensions.Configuration;
 
 class TransactionDbContextFactory : IDesignTimeDbContextFactory<TransactionDBContext>
 {
     public TransactionDBContext CreateDbContext(string[] args)
     {
+        var path = Directory.GetCurrentDirectory();
+            
         var builder = new DbContextOptionsBuilder<TransactionDBContext>();
-
         var connStr = "Host=localhost:5432;Database=transactions;Username=postgres;Password=postgres";
         builder.UseNpgsql(connStr);
         return new TransactionDBContext(builder.Options);

@@ -7,7 +7,6 @@ using static Transaction;
 
 public static class TransactionModule
 {
-    const string STATE_STORE = "transaction-cache";
     static WebApplication _app = default!;
 
     public static void MapTransactionEndpoints(this WebApplication app)
@@ -104,13 +103,15 @@ public static class TransactionModule
         HttpRequest request,
         HttpContext httpContext,
         [FromServices] DaprClient client,
-        [FromServices] TransactionDBContext context
+        [FromServices] TransactionDBContext context,
+        IConfiguration configuration
     )
     {
+        var stateStoreName = configuration["DAPR_STATE_STORE_NAME"];
 
         _app.Logger.LogInformation($"getTransactionDefinition is queried with {requestOrOrderUrl}");
 
-        var cachedResponse = await client.GetStateAsync<GetDefinitionResponse>(STATE_STORE, requestOrOrderUrl);
+        var cachedResponse = await client.GetStateAsync<GetDefinitionResponse>(stateStoreName, requestOrOrderUrl);
         if (cachedResponse is not null)
         {
             httpContext.Response.Headers.Add("X-Cache", "Hit");
@@ -132,8 +133,8 @@ public static class TransactionModule
 
 
         var metadata = new Dictionary<string, string> { { "ttlInSeconds", "300" } };
-        await client.SaveStateAsync(STATE_STORE, response.orderUrlTemplate, response, metadata: metadata);
-        await client.SaveStateAsync(STATE_STORE, response.requestUrlTemplate, response, metadata: metadata);
+        await client.SaveStateAsync(stateStoreName, response.orderUrlTemplate, response, metadata: metadata);
+        await client.SaveStateAsync(stateStoreName, response.requestUrlTemplate, response, metadata: metadata);
 
         return Results.Ok(response);
     }
@@ -142,9 +143,12 @@ public static class TransactionModule
     static async Task<IResult> postTransactionDefinition(
         [FromBody] PostDefinitionRequest data,
         [FromServices] DaprClient client,
-        [FromServices] TransactionDBContext context
+        [FromServices] TransactionDBContext context,
+        IConfiguration configuration
         )
     {
+        var stateStoreName = configuration["DAPR_STATE_STORE_NAME"];
+
         // Check any url and client configuration is exists ?
         var definitions = context!.Definitions!
           .Where(t => (t.RequestUrlTemplate == data.requestUrlTemplate || t.OrderUrlTemplate == data.orderUrlTemplate) && t.Client == data.client)
@@ -173,8 +177,8 @@ public static class TransactionModule
 
             if (hasChanges)
             {
-                await client.DeleteStateAsync(STATE_STORE, data.orderUrlTemplate);
-                await client.DeleteStateAsync(STATE_STORE, data.requestUrlTemplate);
+                await client.DeleteStateAsync(stateStoreName, data.orderUrlTemplate);
+                await client.DeleteStateAsync(stateStoreName, data.requestUrlTemplate);
 
                 context!.SaveChanges();
                 return Results.Ok();
@@ -212,7 +216,8 @@ public static class TransactionModule
         HttpRequest request,
         HttpContext httpContext,
         [FromServices] DaprClient client,
-        [FromServices] TransactionDBContext dbContext
+        [FromServices] TransactionDBContext dbContext,
+        IConfiguration configuration
     )
     {
         var definition = dbContext!.Definitions!
@@ -427,7 +432,7 @@ public static class TransactionModule
         transaction.StatusReason = "Order Upstream Requested Successfully";
 
         dynamic variables = new ExpandoObject();
-        variables.flowType = "default";
+        variables.flowType = "WebFlow";
 
         dynamic messageData = new ExpandoObject();
         messageData.messageName = "Order";
@@ -438,9 +443,11 @@ public static class TransactionModule
         return Results.Ok();
     }
 
-    public static async Task<IResult> commandTransaction([FromServices] DaprClient client,
+    public static async Task<IResult> commandTransaction(IConfiguration configuration,[FromServices] DaprClient client,
         [FromServices] TransactionDBContext dbContext,[FromRoute(Name = "transaction-id")] string transactionId, PostCommand body)
     {
+        var stateStoreName = configuration["DAPR_STATE_STORE_NAME"];
+
         if(body.commandType == CommandType.IvrResponse)
         {
             if(body.details["IvrResult"].ToString() == "Success")
@@ -458,7 +465,7 @@ public static class TransactionModule
         if(body.commandType == CommandType.ApproveOtp)
         {
             var cacheKey = transactionId+"|OtpValue";
-            var otpValue = await client.GetStateAsync<string>("transaction-cache",cacheKey);
+            var otpValue = await client.GetStateAsync<string>(stateStoreName,cacheKey);
             if(otpValue == body.details["OtpValue"].ToString())
             {
                 dynamic messageData = new ExpandoObject();
@@ -483,9 +490,7 @@ public static class TransactionModule
 
         if(body.commandType == CommandType.ZeebeSetVariables)
         {
-            
             var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "set-variables", body.details);
-
         }
 
         return Results.Ok();

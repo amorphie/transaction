@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using amorphie.transaction.data.Api.MessagingGateway;
+using amorphie.transaction.data.Api.MessagingGateway.Model;
 
 public static class TransactionWorkersModule
 {
@@ -29,6 +31,11 @@ public static class TransactionWorkersModule
             .WithOpenApi()
             .WithSummary("Order Transaction.")
             .WithTags("Order");
+
+        _app.MapPost("/IsIvrRequired",isIvrRequired)
+            .WithOpenApi()
+            .WithSummary("Check Ivr is Mandatory Or Not.")
+            .WithTags("Ivr");
     }
 
     static async Task<IResult> makeTransfer(
@@ -38,7 +45,7 @@ public static class TransactionWorkersModule
        [FromServices] DaprClient client,
        [FromServices] TransactionDBContext context
     )
-    {
+    {        
         Guid id = Guid.Parse(body.GetProperty("transactionId").ToString()!);
         var transaction = await context!.Transactions!.FirstOrDefaultAsync(t => t.Id == id);
         
@@ -100,17 +107,46 @@ public static class TransactionWorkersModule
        HttpRequest request,
        HttpContext httpContext,
        [FromServices] DaprClient client,
-       [FromServices] TransactionDBContext context
+       [FromServices] TransactionDBContext context,
+       IConfiguration configuration,
+       IMessagingGatewayApi messagingGatewayApi
     )
     {
-        _app.Logger.LogInformation($"IterateWorker is called with {body}");
+
+        var stateStoreName = configuration["DAPR_STATE_STORE_NAME"];
 
         Guid id = Guid.Parse(body.GetProperty("transactionId").ToString()!);
 
         var rand = new Random();
-        var otpValue = "123123";
+        
+        var otpValue = rand.Next(100000,999999).ToString();
+        
         var cacheKey = id+"|OtpValue";
-        await client.SaveStateAsync<string>("transaction-cache",cacheKey,otpValue);
+        await client.SaveStateAsync<string>(stateStoreName,cacheKey,otpValue);
+        
+        SmsRequestString otpRequest = new();
+        otpRequest.Content = "Para transferi işlemini tamamlamak için kodu kullanın. " + otpValue;
+        otpRequest.Phone = new()
+        {
+            CountryCode=configuration["TestData:CountryCode"],
+            Prefix=configuration["TestData:Prefix"],
+            Number=configuration["TestData:Number"]
+        };
+        otpRequest.Process = new()
+        {
+            Action = "Transaction Otp Sending",
+            ItemId = id.ToString(),
+            Identity = "TransactionMicroservice",
+            Name = "TransactionMicroservice"
+        };
+        otpRequest.Sender = SenderType.AutoDetect;
+        otpRequest.SmsType = SmsTypes.Otp;
+
+        var otpResponse = messagingGatewayApi.SendOtp(otpRequest);
+
+        var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("OtpEvents");
+        logger.LogInformation("Otp Value : "+otpValue);
 
         var response = await client.InvokeMethodAsync<PostPublishStatusRequest, string>(
             HttpMethod.Post,
@@ -126,6 +162,32 @@ public static class TransactionWorkersModule
         return Results.Ok();
     }
 
+    static async Task<IResult> isIvrRequired(
+       [FromBody] dynamic body,
+       HttpRequest request,
+       HttpContext httpContext,
+       [FromServices] DaprClient client,
+       [FromServices] TransactionDBContext context
+    )
+    {
+        await Task.CompletedTask;
+
+        Guid id = Guid.Parse(body.GetProperty("transactionId").ToString()!);
+        long processInstanceKey = Convert.ToInt64(request.Headers["X-Zeebe-Process-Instance-Key"]);
+
+        var details = new Dictionary<string,dynamic>();
+        details["elementInstanceKey"] = processInstanceKey;
+        details["variables"] = new Dictionary<string,dynamic>();
+        
+        details["variables"]["isIvrRequired"] = true;
+        
+        await client.InvokeMethodAsync<PostCommand>("amorphie-transaction","transaction/instance/"+id+"/command",new PostCommand(
+            CommandType.ZeebeSetVariables,
+            details));
+        
+        return Results.Ok();
+    }
+    
     static async Task<IResult> fraudCheck(
        [FromBody] dynamic body,
        HttpRequest request,

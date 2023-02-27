@@ -1,16 +1,16 @@
 using System.Text.Json;
-using SecretExtensions;
+using amorphie.transaction.data;
 
 var builder = WebApplication.CreateBuilder(args);
-await builder.Configuration.AddVaultSecrets("transaction-secretstore","bbt.gateway.messaging");
-var client = new DaprClientBuilder().Build();
+builder.Configuration.AddEnvironmentVariables();
 
-#pragma warning disable 618
-var configurations = await client.GetConfiguration("configstore", new List<string>() { "config-amorphie-transaction-db" });
-#pragma warning restore 618 
+await builder.Configuration.AddVaultSecrets(builder.Configuration["DAPR_SECRET_STORE_NAME"],new string[]{"DatabaseConnections","ServiceConnections"});
+
 
 builder.Services.AddDbContext<TransactionDBContext>
-   (options => options.UseNpgsql(configurations.Items["config-amorphie-transaction-db"].Value));
+   (options => options.UseNpgsql(builder.Configuration["TransactionDb"]));
+
+
 
 builder.Services.AddDaprClient();
 builder.Logging.ClearProviders();
@@ -30,18 +30,16 @@ builder.Services.AddCors(options =>
         });
 });
 
-
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 var app = builder.Build();
-var kk = app.Configuration["id"];
-var conf = app.Configuration;
 
-app.Logger.LogInformation("Db String : "+configurations.Items["config-amorphie-transaction-db"].Value);
-
+using var scope = app.Services.CreateScope();
+var db = scope.ServiceProvider.GetRequiredService<TransactionDBContext>();
+db.Database.Migrate();
 
 app.UseTransactionMiddleware();
 app.UseCors();

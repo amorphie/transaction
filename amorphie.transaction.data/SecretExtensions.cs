@@ -5,7 +5,7 @@ using VaultSharp;
 using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
 
-namespace SecretExtensions;
+namespace amorphie.transaction.data;
 public static class SecretExtensions
 {
     public static async Task UseVault(this IConfigurationBuilder builder, Type type, string secretPath, string secretMount,string key = "appsettings")
@@ -74,16 +74,21 @@ public static class SecretExtensions
         
     }
 
-    public static async Task AddVaultSecrets(this IConfigurationBuilder builder, string secretStoreName, string secretPath)
+    public static async Task AddVaultSecrets(this IConfigurationBuilder builder, string? secretStoreName, string[] secretPaths)
     {
+        if(string.IsNullOrWhiteSpace(secretStoreName))
+        {
+            throw new SecretException("Secret Store Name couldn't be null or empty string. Provide a valid Secret Store Name");
+        }
         try
         {
-            var configuration = builder.Build();
-
             var daprClient = new DaprClientBuilder().Build();
-            var secret = await daprClient.GetSecretAsync(secretStoreName,secretPath);
-            
-            builder.AddInMemoryCollection(secret); 
+            foreach(var secretPath in secretPaths)
+            {
+                var secret = await daprClient.GetSecretAsync(secretStoreName,secretPath);
+                
+                builder.AddInMemoryCollection(secret); 
+            }
         }
         catch (Exception ex)
         {

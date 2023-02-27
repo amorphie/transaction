@@ -1,195 +1,422 @@
 {
-  "uuid": "3e314dd1-010d-4ffe-8fa4-bc98ec9b7f6b",
-  "lastMigration": 24,
-  "name": "Transaction Mock API",
-  "endpointPrefix": "",
-  "latency": 0,
-  "port": 3000,
-  "hostname": "0.0.0.0",
-  "routes": [
-      {
-          "uuid": "a8b7ca2d-24ec-4177-a0e0-5e9530e1d22f",
-          "documentation": "",
-          "method": "get",
-          "endpoint": "fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN/:SourceAccount",
-          "responses": [
-              {
-                  "uuid": "147b3a7d-1f63-493f-aeea-35965cd60eff",
-                  "body": "{\n  \"res\" : \"misssing headers\"\n}",
-                  "latency": 0,
-                  "statusCode": 400,
-                  "label": "",
-                  "headers": [
-                      {
-                          "key": "",
-                          "value": ""
-                      }
-                  ],
-                  "bodyType": "INLINE",
-                  "filePath": "",
-                  "databucketID": "",
-                  "sendFileAsBody": false,
-                  "rules": [
-                      {
-                          "target": "header",
-                          "modifier": "channel",
-                          "value": "\"INTERNET\"",
-                          "invert": true,
-                          "operator": "equals"
-                      },
-                      {
-                          "target": "header",
-                          "modifier": "user",
-                          "value": "\"EBT\\INTERNETUSER\"",
-                          "invert": true,
-                          "operator": "equals"
-                      },
-                      {
-                          "target": "header",
-                          "modifier": "Branch",
-                          "value": "2000",
-                          "invert": true,
-                          "operator": "equals"
-                      }
-                  ],
-                  "rulesOperator": "AND",
-                  "disableTemplating": false,
-                  "fallbackTo404": false,
-                  "default": false
-              },
-              {
-                  "uuid": "a6b30157-2bfe-4996-ba45-df912264aebd",
-                  "body": "{\r\n    \"amount\": {{queryParam 'amount'}},\r\n    \"bankName\": \"T.IŞ BANKASI A.S.\",\r\n    \"credits\": [\r\n        {\r\n            \"amount\": 0,\r\n            \"interestRate\": 0,\r\n            \"name\": \"\"\r\n        }\r\n    ],\r\n    \"date\": \"2023-01-09T00:00:00.000000\",\r\n    \"expenses\": [\r\n        {\r\n            \"amount\": 1.05,\r\n            \"client\": \"20089057\",\r\n            \"currencyCode\": \"TRY\",\r\n            \"name\": \"EFT Masrafı\",\r\n            \"ratio\": 0\r\n        }\r\n    ],\r\n    \"finalBalance\": 15122554166.73,\r\n    \"initialBalance\": 15122554171.73\r\n}",
-                  "latency": 0,
-                  "statusCode": 200,
-                  "label": "",
-                  "headers": [],
-                  "bodyType": "INLINE",
-                  "filePath": "",
-                  "databucketID": "",
-                  "sendFileAsBody": false,
-                  "rules": [],
-                  "rulesOperator": "OR",
-                  "disableTemplating": false,
-                  "fallbackTo404": false,
-                  "default": true
-              }
-          ],
-          "enabled": true,
-          "responseMode": null
-      },
-      {
-          "uuid": "29be6276-629f-4eb3-b058-6465605ac2f0",
-          "documentation": "",
-          "method": "post",
-          "endpoint": "fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN/:SourceAccount",
-          "responses": [
-              {
-                  "uuid": "8965c23a-72a0-40d4-90a0-c852b21ed344",
-                  "body": "{\r\n    \"EFTNumber\": \"396\",\r\n    \"FraudStatus\": \"S\",\r\n    \"amount\": 5,\r\n    \"credits\": [],\r\n    \"date\": \"2023-01-09T00:00:00.000000\",\r\n    \"expenses\": [\r\n        {\r\n            \"amount\": 1.05,\r\n            \"client\": \"20089057\",\r\n            \"currencyCode\": \"TRY\",\r\n            \"name\": \"EFT Masrafı\",\r\n            \"ratio\": 0\r\n        }\r\n    ],\r\n    \"finalBalance\": 64592.89,\r\n    \"initialBalance\": 64597.89,\r\n    \"sequenceId\": \"689296655\",\r\n    \"transferType\": \"eft\"\r\n}",
-                  "latency": 0,
-                  "statusCode": 200,
-                  "label": "",
-                  "headers": [],
-                  "bodyType": "INLINE",
-                  "filePath": "",
-                  "databucketID": "",
-                  "sendFileAsBody": false,
-                  "rules": [],
-                  "rulesOperator": "OR",
-                  "disableTemplating": false,
-                  "fallbackTo404": false,
-                  "default": true
-              }
-          ],
-          "enabled": true,
-          "responseMode": null
-      },
-      {
-          "uuid": "8b795a66-d4b9-49ac-982c-11f4dd4f1d0b",
-          "documentation": "",
-          "method": "post",
-          "endpoint": "fraud",
-          "responses": [
-              {
-                  "uuid": "27b56fe1-49cb-4450-bb33-3e1da8eebb7f",
-                  "body": "{\n  \"fraudResult\" : \"IVR\"\n}",
-                  "latency": 0,
-                  "statusCode": 200,
-                  "label": "",
-                  "headers": [],
-                  "bodyType": "INLINE",
-                  "filePath": "",
-                  "databucketID": "",
-                  "sendFileAsBody": false,
-                  "rules": [],
-                  "rulesOperator": "OR",
-                  "disableTemplating": false,
-                  "fallbackTo404": false,
-                  "default": true
-              }
-          ],
-          "enabled": true,
-          "responseMode": null
-      },
-      {
-          "uuid": "7f4cab00-d162-496f-bf1c-ec43c738a8ce",
-          "documentation": "",
-          "method": "post",
-          "endpoint": "otp",
-          "responses": [
-              {
-                  "uuid": "9f9841bc-4cdb-439f-94c5-c74f4e582e63",
-                  "body": "{\n  \"Status\":\"Success\"\n}",
-                  "latency": 0,
-                  "statusCode": 200,
-                  "label": "",
-                  "headers": [],
-                  "bodyType": "INLINE",
-                  "filePath": "",
-                  "databucketID": "",
-                  "sendFileAsBody": false,
-                  "rules": [],
-                  "rulesOperator": "OR",
-                  "disableTemplating": false,
-                  "fallbackTo404": false,
-                  "default": true
-              }
-          ],
-          "enabled": true,
-          "responseMode": null
-      }
-  ],
-  "proxyMode": false,
-  "proxyHost": "",
-  "proxyRemovePrefix": false,
-  "tlsOptions": {
-      "enabled": false,
-      "type": "CERT",
-      "pfxPath": "",
-      "certPath": "",
-      "keyPath": "",
-      "caPath": "",
-      "passphrase": ""
-  },
-  "cors": true,
-  "headers": [
-      {
-          "key": "Content-Type",
-          "value": "application/json"
-      }
-  ],
-  "proxyReqHeaders": [
-      {
-          "key": "",
-          "value": ""
-      }
-  ],
-  "proxyResHeaders": [
-      {
-          "key": "",
-          "value": ""
-      }
-  ],
-  "data": []
+    "uuid": "3e314dd1-010d-4ffe-8fa4-bc98ec9b7f6b",
+    "lastMigration": 24,
+    "name": "Demo API",
+    "endpointPrefix": "",
+    "latency": 0,
+    "port": 3000,
+    "hostname": "0.0.0.0",
+    "routes": [
+        {
+            "uuid": "df4a08c5-a1bb-4fae-a4ee-727e3baf39cc",
+            "documentation": "Generate random body (JSON, text, CSV, etc) with templating",
+            "method": "get",
+            "endpoint": "users",
+            "responses": [
+                {
+                    "uuid": "dd715bd9-fdda-4eec-a4a5-368a47cfcb1e",
+                    "body": "{\n  \"pots\":[\n      {{# repeat 2}}\n        \"id\":\"{{faker 'datatype.uuid'}}\",\n        \"latitude\":\"{{faker 'address.latitude'}}\"\n      {{/ repeat}}\n    ],\n  \"users\": [\n    {{# repeat (queryParam 'total' '10') }}\n      {\n        \"userId\": \"{{ faker 'datatype.number' min=10000 max=100000 }}\",\n        \"firstname\": \"{{ faker 'name.firstName' }}\",\n        \"lastname\": \"{{ faker 'name.lastName' }}\",\n        \"friends\": [\n          {{# repeat (faker 'datatype.number' 5) }}\n            {\n              \"id\": \"{{ faker 'datatype.uuid' }}\"\n            }\n          {{/ repeat }}\n        ]\n      },\n    {{/ repeat }}\n  ],\n  \"total\": \"{{queryParam 'total' '10'}}\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Creates 10 random users, or the amount specified in the 'total' query param",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "8555e524-823d-4abc-9604-272c1c979fef",
+            "documentation": "Use multiple responses with rules",
+            "method": "post",
+            "endpoint": "content/:param1",
+            "responses": [
+                {
+                    "uuid": "3cbdec1f-05b5-4a9f-9c46-39d8f296f4e3",
+                    "body": "{\n  \"Rules example\": \"Default response. Served if route param 'param1' is not present.\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Default response",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false
+                },
+                {
+                    "uuid": "79713241-33c4-4b08-acfb-9583f329e1c7",
+                    "body": "{\n  \"Rules example\": \"Content XYZ. Served if route param 'param1' equals 'xyz'. (See in 'Rules' tab)\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Content XYZ",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "params",
+                            "modifier": "param1",
+                            "value": "xyz",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false
+                },
+                {
+                    "uuid": "0944f9f3-4240-481c-943e-6f403c7d8a88",
+                    "body": "{\n  \"Rules example\": \"Content not found. Served if route param 'param1' is not equal to 'xyz'. (See in 'Rules' tab)\"\n}\n",
+                    "latency": 0,
+                    "statusCode": 404,
+                    "label": "Content not found",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "params",
+                            "modifier": "param1",
+                            "value": "^(?!.*xyz).*$",
+                            "invert": false,
+                            "operator": "regex"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "c6d2ea05-6229-4f13-bfb6-5fdb11eb471c",
+            "documentation": "Serve a file dynamically depending on the path param 'pageName'.",
+            "method": "get",
+            "endpoint": "file/:pageName",
+            "responses": [
+                {
+                    "uuid": "4021fe70-eedb-451e-bd74-88abd2b4ae21",
+                    "body": "",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Templating is also supported in file path",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "text/html"
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "./page{{urlParam 'pageName'}}.html",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "47811050-3646-416a-a4c8-ca3bf58965a3",
+            "documentation": "Path supports various patterns",
+            "method": "put",
+            "endpoint": "path/with/pattern(s)?/*",
+            "responses": [
+                {
+                    "uuid": "ee2e3a5c-80f3-4994-a0f9-7cbc4c762ab9",
+                    "body": "The current path will match the following routes: \nhttp://localhost:3000/path/with/pattern/\nhttp://localhost:3000/path/with/patterns/\nhttp://localhost:3000/path/with/patterns/anything-else\n\nLearn more about Mockoon's routing: https://mockoon.com/docs/latest/routing",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "text/plain"
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "de02d6ee-c812-4665-b518-c405446e0abd",
+            "documentation": "Can Mockoon forward or record entering requests?",
+            "method": "get",
+            "endpoint": "forward-and-record",
+            "responses": [
+                {
+                    "uuid": "0955fa7a-31fe-4284-91ad-f4ffbf395482",
+                    "body": "Mockoon can also act as a proxy and forward all entering requests that are not caught by declared routes. \nYou can activate this option in the environment settings ('cog' icon in the upper right corner). \nTo learn more: https://mockoon.com/docs/latest/proxy-mode\n\nAs always, all entering requests, and responses from the proxied server will be recorded ('clock' icon in the upper right corner).\nTo learn more: https://mockoon.com/docs/latest/requests-logging",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "text/plain"
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "a8b7ca2d-24ec-4177-a0e0-5e9530e1d22f",
+            "documentation": "",
+            "method": "get",
+            "endpoint": "fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN/:SourceAccount",
+            "responses": [
+                {
+                    "uuid": "147b3a7d-1f63-493f-aeea-35965cd60eff",
+                    "body": "{\n  \"res\" : \"misssing headers\"\n}",
+                    "latency": 0,
+                    "statusCode": 400,
+                    "label": "",
+                    "headers": [
+                        {
+                            "key": "",
+                            "value": ""
+                        }
+                    ],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "header",
+                            "modifier": "channel",
+                            "value": "\"INTERNET\"",
+                            "invert": true,
+                            "operator": "equals"
+                        },
+                        {
+                            "target": "header",
+                            "modifier": "user",
+                            "value": "\"EBT\\INTERNETUSER\"",
+                            "invert": true,
+                            "operator": "equals"
+                        },
+                        {
+                            "target": "header",
+                            "modifier": "Branch",
+                            "value": "2000",
+                            "invert": true,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "AND",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false
+                },
+                {
+                    "uuid": "a6b30157-2bfe-4996-ba45-df912264aebd",
+                    "body": "{\r\n    \"amount\": {{queryParam 'amount'}},\r\n    \"bankName\": \"T.IŞ BANKASI A.S.\",\r\n    \"credits\": [\r\n        {\r\n            \"amount\": 0,\r\n            \"interestRate\": 0,\r\n            \"name\": \"\"\r\n        }\r\n    ],\r\n    \"date\": \"2023-01-09T00:00:00.000000\",\r\n    \"expenses\": [\r\n        {\r\n            \"amount\": 1.05,\r\n            \"client\": \"20089057\",\r\n            \"currencyCode\": \"TRY\",\r\n            \"name\": \"EFT Masrafı\",\r\n            \"ratio\": 0\r\n        }\r\n    ],\r\n    \"finalBalance\": 15122554166.73,\r\n    \"initialBalance\": 15122554171.73\r\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "29be6276-629f-4eb3-b058-6465605ac2f0",
+            "documentation": "",
+            "method": "post",
+            "endpoint": "fora/DigitalServices/EftService.svc/transfers/eft/ToIBAN/:SourceAccount",
+            "responses": [
+                {
+                    "uuid": "8965c23a-72a0-40d4-90a0-c852b21ed344",
+                    "body": "{\r\n    \"EFTNumber\": \"396\",\r\n    \"FraudStatus\": \"S\",\r\n    \"amount\": 5,\r\n    \"credits\": [],\r\n    \"date\": \"2023-01-09T00:00:00.000000\",\r\n    \"expenses\": [\r\n        {\r\n            \"amount\": 1.05,\r\n            \"client\": \"20089057\",\r\n            \"currencyCode\": \"TRY\",\r\n            \"name\": \"EFT Masrafı\",\r\n            \"ratio\": 0\r\n        }\r\n    ],\r\n    \"finalBalance\": 64592.89,\r\n    \"initialBalance\": 64597.89,\r\n    \"sequenceId\": \"689296655\",\r\n    \"transferType\": \"eft\"\r\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "8b795a66-d4b9-49ac-982c-11f4dd4f1d0b",
+            "documentation": "",
+            "method": "post",
+            "endpoint": "fraud",
+            "responses": [
+                {
+                    "uuid": "27b56fe1-49cb-4450-bb33-3e1da8eebb7f",
+                    "body": "{\n  \"fraudResult\" : \"IVR\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "7f4cab00-d162-496f-bf1c-ec43c738a8ce",
+            "documentation": "",
+            "method": "post",
+            "endpoint": "otp",
+            "responses": [
+                {
+                    "uuid": "9f9841bc-4cdb-439f-94c5-c74f4e582e63",
+                    "body": "{\n  \"Status\":\"Success\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        },
+        {
+            "uuid": "0b163055-e5ab-4303-82c9-b8c4b2f5aaff",
+            "documentation": "",
+            "method": "post",
+            "endpoint": "api/v2/Messaging/sms/send/string",
+            "responses": [
+                {
+                    "uuid": "61e08981-bb88-4820-9c08-d70d76d0d5c4",
+                    "body": "{\n  \"Status\":\"success\",\n  \"TxnId\":\"ASGSAG-SAGSA-12512A\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true
+                }
+            ],
+            "enabled": true,
+            "responseMode": null
+        }
+    ],
+    "proxyMode": false,
+    "proxyHost": "",
+    "proxyRemovePrefix": false,
+    "tlsOptions": {
+        "enabled": false,
+        "type": "CERT",
+        "pfxPath": "",
+        "certPath": "",
+        "keyPath": "",
+        "caPath": "",
+        "passphrase": ""
+    },
+    "cors": true,
+    "headers": [
+        {
+            "key": "Content-Type",
+            "value": "application/json"
+        }
+    ],
+    "proxyReqHeaders": [
+        {
+            "key": "",
+            "value": ""
+        }
+    ],
+    "proxyResHeaders": [
+        {
+            "key": "",
+            "value": ""
+        }
+    ],
+    "data": []
 }

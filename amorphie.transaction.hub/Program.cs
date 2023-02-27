@@ -8,6 +8,8 @@ using Dapr.Client;
 using System.Security.Principal;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
+
 var client = new DaprClientBuilder().Build();
 
 byte[] JwtKey = Encoding.ASCII.GetBytes("thisissupersecretthisissupersecretthisissupersecrethisissupersecrett");
@@ -66,9 +68,10 @@ builder.Services.AddAuthentication(options =>
                 return;
             }
 
-            var tokenStatus = await client.GetStateAsync<TransactionTokenStatus>("transaction-cache", transactionId);
+            var stateStoreName = builder.Configuration["DAPR_STATE_STORE_NAME"];
+            var tokenStatus = await client.GetStateAsync<TransactionTokenStatus>(stateStoreName, transactionId);
             tokenStatus.LastValidatedAt = DateTime.Now;
-            await client.SaveStateAsync<TransactionTokenStatus>("transaction-cache", transactionId, tokenStatus);
+            await client.SaveStateAsync<TransactionTokenStatus>(stateStoreName, transactionId, tokenStatus);
 
             return;
         }
@@ -102,9 +105,11 @@ app.UseSwaggerUI();
 app.UseCors();
 
 app.MapPost("/security/create-token",
-[AllowAnonymous] async (PostCreateTransactionHubTokenRequest data) =>
+[AllowAnonymous] async (PostCreateTransactionHubTokenRequest data,IConfiguration configuration) =>
 {
 
+    var stateStoreName = configuration["DAPR_STATE_STORE_NAME"];
+    
     var tokenHandler = new JwtSecurityTokenHandler();
     var tokenDescriptor = new SecurityTokenDescriptor
     {
@@ -128,7 +133,7 @@ app.MapPost("/security/create-token",
 
 
     await client.SaveStateAsync<TransactionTokenStatus>(
-        "transaction-cache",
+        stateStoreName,
         data.transactionId.ToString(),
         new TransactionTokenStatus { Token = token, TransactionId = data.transactionId, DefinitionId = data.definitionId, Scope = data.scope, Client = data.client, User = data.user, Reference = data.reference, TTL = data.ttl, ExpiryAt = tokenDescriptor.Expires },
         metadata: new Dictionary<string, string> { { "ttlInSeconds", $"{data.ttl}" } }
@@ -146,7 +151,6 @@ app.MapPost("/transaction/publish-status",
     return Results.Ok("");
 });
 
-app.UseWhen(context => context.Request.Path.StartsWithSegments("/transaction/publish-status"),app => app.UseMiddleware<TransactionMiddleware>());
 app.MapHub<TransactionHub>("/transaction/hub");
 
 app.Run();
@@ -186,30 +190,3 @@ public class NameUserIdProvider : IUserIdProvider
     (connection?.User?.Identity?.Name ?? "");
 }
 
-public class TransactionMiddleware
-{
-    private readonly RequestDelegate _next;
-    public TransactionMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
-        {
-            context.Request.EnableBuffering();
-            var bodyAsText = await new System.IO.StreamReader(context.Request.Body).ReadToEndAsync();
-            context.Request.Body.Position = 0;
-            await _next(context); 
-        }
-        catch (Exception ex)
-        {
-        }
-        finally
-        {
-            
-        }
-    }
-
-}

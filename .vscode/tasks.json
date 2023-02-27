@@ -81,7 +81,7 @@
             "label": "dapr-debug-amorphie-transaction-hub",
             "type": "dapr",
             "dependsOn": "build-amorphie-transaction-hub",
-            "componentsPath": "Dapr/Components"
+            "componentsPath": "Dapr/Components",
         },
         {
             "appId": "amorphie-transaction-worker",
