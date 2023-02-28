@@ -49,6 +49,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapTransactionEndpoints();
+app.MapTestModuleEndpoints();
 
 try
 {
