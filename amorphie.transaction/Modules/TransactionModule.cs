@@ -330,7 +330,7 @@ public static class TransactionModule
         instanceData.bpmnProcessId = definition.Workflow;
         instanceData.variables = variables;
 
-        var workflowInstanceResult = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "create-instance", instanceData);
+        var workflowInstanceResult = await client.InvokeBindingAsync<dynamic, dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "create-instance", instanceData);
 
         var tokenRequestData = new PostCreateTransactionHubTokenRequest(transactionId, definition.Id, data.scope, data.client, data.user, data.reference, definition.TTL);
 
