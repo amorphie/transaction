@@ -8,7 +8,7 @@ await builder.Configuration.AddVaultSecrets(builder.Configuration["DAPR_SECRET_S
 
 
 builder.Services.AddDbContext<TransactionDBContext>
-   (options => options.UseNpgsql(builder.Configuration["TransactionDb"]));
+   (options => options.UseNpgsql(builder.Configuration["TransactionDb"],t => t.MigrationsAssembly("amorphie.transaction.data")));
 
 
 
