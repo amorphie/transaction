@@ -340,7 +340,7 @@ public static class TransactionModule
 
         var returnValue = new PostTransactionRequestResponse(
             upResponseData,
-            new PostTransactionRequestTransactionResponse(transactionId, workflowInstanceResult,"http://localhost:4201/transaction/hub", token ));
+            new PostTransactionRequestTransactionResponse(transactionId, workflowInstanceResult,configuration["TransactionHubUri"], token ));
 
         return Results.Ok(returnValue);
     }

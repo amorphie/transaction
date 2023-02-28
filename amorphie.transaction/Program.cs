@@ -1,4 +1,3 @@
-using System.Text.Json;
 using amorphie.transaction.data;
 
 var builder = WebApplication.CreateBuilder(args);
