@@ -333,16 +333,17 @@ public static class TransactionModule
         var workflowInstanceResult = await client.InvokeBindingAsync<dynamic, dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "create-instance", instanceData);
 
         var tokenRequestData = new PostCreateTransactionHubTokenRequest(transactionId, definition.Id, data.scope, data.client, data.user, data.reference, definition.TTL);
-
+        _app.Logger.LogInformation(JsonSerializer.Serialize(tokenRequestData));
         var token = await client.InvokeMethodAsync<PostCreateTransactionHubTokenRequest, string>(HttpMethod.Post, "amorphie-transaction-hub", "security/create-token", tokenRequestData);
 
         transaction.SignalRHubToken = token;
 
         var returnValue = new PostTransactionRequestResponse(
-            upResponseData,
-            new PostTransactionRequestTransactionResponse(transactionId, workflowInstanceResult,configuration["TransactionHubUri"], token ));
+        upResponseData,
+        new PostTransactionRequestTransactionResponse(transactionId, workflowInstanceResult,configuration["TransactionHubUri"], token ));
 
         return Results.Ok(returnValue);
+       
     }
 
     static async Task<IResult> orderTransaction(
