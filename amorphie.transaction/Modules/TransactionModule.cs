@@ -334,7 +334,7 @@ public static class TransactionModule
 
         var tokenRequestData = new PostCreateTransactionHubTokenRequest(transactionId, definition.Id, data.scope, data.client, data.user, data.reference, definition.TTL);
         _app.Logger.LogInformation(JsonSerializer.Serialize(tokenRequestData));
-        var token = await client.InvokeMethodAsync<PostCreateTransactionHubTokenRequest, string>(HttpMethod.Post, "amorphie-transaction-hub", "security/create-token", tokenRequestData);
+        var token = await client.InvokeMethodAsync<PostCreateTransactionHubTokenRequest, string>(HttpMethod.Post, "amorphie-transaction-hub.test-amorphie-transaction-hub", "security/create-token", tokenRequestData);
 
         transaction.SignalRHubToken = token;
 
