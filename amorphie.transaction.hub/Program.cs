@@ -105,11 +105,12 @@ app.UseSwaggerUI();
 app.UseCors();
 
 app.MapPost("/security/create-token",
-[AllowAnonymous] async (PostCreateTransactionHubTokenRequest data,IConfiguration configuration) =>
+[AllowAnonymous] async (PostCreateTransactionHubTokenRequest data,ILogger logger,IConfiguration configuration) =>
 {
 
+    logger.LogInformation("Hub Create Token Started");
     var stateStoreName = configuration["DAPR_STATE_STORE_NAME"];
-    
+    logger.LogInformation("Hub Dapr State Retrieved");
     var tokenHandler = new JwtSecurityTokenHandler();
     var tokenDescriptor = new SecurityTokenDescriptor
     {
