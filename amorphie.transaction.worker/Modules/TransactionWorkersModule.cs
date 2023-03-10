@@ -150,7 +150,7 @@ public static class TransactionWorkersModule
 
         var response = await client.InvokeMethodAsync<PostPublishStatusRequest, string>(
             HttpMethod.Post,
-            "amorphie-transaction-hub",
+            "amorphie-transaction-hub.test-amorphie-transaction-hub",
             "transaction/publish-status",
             new PostPublishStatusRequest(
                 id,
