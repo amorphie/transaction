@@ -352,7 +352,8 @@ public static class TransactionModule
         HttpRequest request,
         HttpContext httpContext,
         [FromServices] DaprClient client,
-        [FromServices] TransactionDBContext dbContext
+        [FromServices] TransactionDBContext dbContext,
+        IConfiguration configuration
     )
     {
         var definition = await dbContext!.Definitions!
