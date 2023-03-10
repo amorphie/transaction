@@ -291,6 +291,7 @@ public static class TransactionModule
 
         try
         {
+            _app.Logger.LogInformation($"client headers {String.Join('|',httpClient.DefaultRequestHeaders.Select(x => (x.Key,x.Value)))}");
             upHttpResponse.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException ex)
