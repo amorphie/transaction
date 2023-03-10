@@ -460,7 +460,7 @@ public static class TransactionModule
                 messageData.correlationKey = transactionId;
                 variables.IvrResult = body.details["IvrResult"];
                 messageData.variables = variables;
-                var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "publish-message", messageData);
+                var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
             }
         }
 
@@ -473,7 +473,7 @@ public static class TransactionModule
                 dynamic messageData = new ExpandoObject();
                 messageData.messageName = "ValidateOtp";
                 messageData.correlationKey = transactionId;
-                var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "publish-message", messageData);
+                var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
             }
             else
             {
@@ -487,12 +487,12 @@ public static class TransactionModule
             messageData.messageName = "ReSentOtp";
             messageData.correlationKey = transactionId;
 
-            var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "publish-message", messageData);
+            var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
         }
 
         if(body.commandType == CommandType.ZeebeSetVariables)
         {
-            var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>("zeebe-command", "set-variables", body.details);
+            var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "set-variables", body.details);
         }
 
         return Results.Ok();
