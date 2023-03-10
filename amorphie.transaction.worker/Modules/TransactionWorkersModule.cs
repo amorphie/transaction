@@ -142,10 +142,20 @@ public static class TransactionWorkersModule
         otpRequest.Sender = SenderType.AutoDetect;
         otpRequest.SmsType = SmsTypes.Otp;
 
-        var otpResponse = messagingGatewayApi.SendOtp(otpRequest);
-
         var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger("OtpEvents");
+
+        try
+        {
+            logger.LogInformation("Otp request : "+JsonSerializer.Serialize(otpRequest));
+            var otpResponse = await messagingGatewayApi.SendOtp(otpRequest);    
+            logger.LogInformation("Otp Servis cevabı : "+JsonSerializer.Serialize(otpResponse));
+        }
+        catch (System.Exception ex)
+        {
+            logger.LogInformation("Otp Servisi çağrılamadı : "+ex.Message);
+        }
+                
         logger.LogInformation("Otp Value : "+otpValue);
 
         var response = await client.InvokeMethodAsync<PostPublishStatusRequest, string>(
