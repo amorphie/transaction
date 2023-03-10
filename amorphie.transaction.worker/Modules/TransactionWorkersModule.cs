@@ -64,7 +64,7 @@ public static class TransactionWorkersModule
 
         var hubResponse = await client.InvokeMethodAsync<PostPublishStatusRequest, string>(
             HttpMethod.Post,
-            "amorphie-transaction-hub",
+            "amorphie-transaction-hub.test-amorphie-transaction-hub",
             "transaction/publish-status",
             new PostPublishStatusRequest(
                 id,
@@ -90,7 +90,7 @@ public static class TransactionWorkersModule
 
         var hubResponse = await client.InvokeMethodAsync<PostPublishStatusRequest, string>(
             HttpMethod.Post,
-            "amorphie-transaction-hub",
+            "amorphie-transaction-hub.test-amorphie-transaction-hub",
             "transaction/publish-status",
             new PostPublishStatusRequest(
                 id,
@@ -191,7 +191,7 @@ public static class TransactionWorkersModule
         
         details["variables"]["isIvrRequired"] = true;
         
-        await client.InvokeMethodAsync<PostCommand>("amorphie-transaction","transaction/instance/"+id+"/command",new PostCommand(
+        await client.InvokeMethodAsync<PostCommand>("amorphie-transaction.test-amorphie-transaction","transaction/instance/"+id+"/command",new PostCommand(
             CommandType.ZeebeSetVariables,
             details));
         
@@ -222,7 +222,7 @@ public static class TransactionWorkersModule
         {
             details["variables"][element.Key] = element.Value;
         }
-        await client.InvokeMethodAsync<PostCommand>("amorphie-transaction","transaction/instance/"+id+"/command",new PostCommand(
+        await client.InvokeMethodAsync<PostCommand>("amorphie-transaction.test-amorphie-transaction","transaction/instance/"+id+"/command",new PostCommand(
             CommandType.ZeebeSetVariables,
             details));
         
