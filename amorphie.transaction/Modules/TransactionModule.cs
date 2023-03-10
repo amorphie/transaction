@@ -291,7 +291,6 @@ public static class TransactionModule
 
         try
         {
-            _app.Logger.LogInformation($"client headers {String.Join('|',httpClient.DefaultRequestHeaders.Select(x => (x.Key,x.Value)))}");
             upHttpResponse.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException ex)
@@ -440,7 +439,7 @@ public static class TransactionModule
         messageData.messageName = "Order";
         messageData.correlationKey = transactionId;
         messageData.variables = variables;
-        var messageResult = await client.InvokeBindingAsync<dynamic, dynamic>("zeebe-command", "publish-message", messageData);
+        var messageResult = await client.InvokeBindingAsync<dynamic, dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
 
         return Results.Ok();
     }
