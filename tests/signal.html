@@ -30,7 +30,7 @@
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                body: document.getElementById("request-data").textContent //  '{"method":"POST","url":"/transfers/eft/simulate","upStreamUrl":"http://localhost:3010/ps.burgan.com.tr/eft/simulate","scope":"ugur","client":"Web","reference":"386321546","user":"3855632656658","body":{"amount":1000,"source-account":"TR546546546564654546","target-account":"TR213213231123546546"},"queryParams":{"amount":"1000","source-account":"TR546546546564654546","target-account":"TR213213231123546546"},"headers":{"Content-Type":"application/json; charset=utf-8","X-Request-Id":"dsa74dsa45das45546dsasad"}}'
+                body: document.getElementById("request-data").textContent //  '{"method":"POST","url":"/transfers/eft/simulate","upStreamUrl":"http://localhost:3010/ps.sss.com.tr/eft/simulate","scope":"ugur","client":"Web","reference":"386321546","user":"3855632656658","body":{"amount":1000,"source-account":"TR546546546564654546","target-account":"TR213213231123546546"},"queryParams":{"amount":"1000","source-account":"TR546546546564654546","target-account":"TR213213231123546546"},"headers":{"Content-Type":"application/json; charset=utf-8","X-Request-Id":"dsa74dsa45das45546dsasad"}}'
             })
                 .then(response => response.json())
                 .then(response => {
@@ -96,7 +96,7 @@
         {
             "method": "POST",
             "url": "/transfers/eft/simulate",
-            "upStreamUrl": "http://localhost:3010/ps.burgan.com.tr/eft/simulate",
+            "upStreamUrl": "http://localhost:3010/ps.sss.com.tr/eft/simulate",
             "scope": "ugur",
             "client": "Web",
             "reference": "386321546",

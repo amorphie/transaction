@@ -13,8 +13,8 @@ builder.Configuration.AddEnvironmentVariables();
 var client = new DaprClientBuilder().Build();
 
 byte[] JwtKey = Encoding.ASCII.GetBytes("thisissupersecretthisissupersecretthisissupersecrethisissupersecrett");
-string JwtIssuer = "https://transaction.amorphie.burgan.com.tr/";
-string JwtAudience = "https://transaction.amorphie.burgan.com.tr/";
+string JwtIssuer = "https://transaction.amorphie.sss.com.tr/";
+string JwtAudience = "https://transaction.amorphie.sss.com.tr/";
 
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole();
