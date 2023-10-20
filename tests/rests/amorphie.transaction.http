@@ -10,7 +10,7 @@ Content-Type: application/json
 {
   "method": "POST",
   "url": "/transfers/eft/simulate",
-  "upStreamUrl": "http://localhost:3000/ps.burgan.com.tr/eft/simulate",
+  "upStreamUrl": "http://localhost:3000/ps.sss.com.tr/eft/simulate",
   "scope": "ugur",
   "client": "Web",
   "reference": "386321546",
@@ -89,7 +89,7 @@ Content-Type: application/json
 }
 ###
 
-POST http://localhost:3010/ps.burgan.com.tr/eft/simulate HTTP/1.1
+POST http://localhost:3010/ps.sss.com.tr/eft/simulate HTTP/1.1
 Content-Type: application/json
 
 {

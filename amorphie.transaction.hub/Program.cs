@@ -13,8 +13,8 @@ builder.Configuration.AddEnvironmentVariables();
 var client = new DaprClientBuilder().Build();
 
 byte[] JwtKey = Encoding.ASCII.GetBytes("thisissupersecretthisissupersecretthisissupersecrethisissupersecrett");
-string JwtIssuer = "https://transaction.amorphie.burgan.com.tr/";
-string JwtAudience = "https://transaction.amorphie.burgan.com.tr/";
+string JwtIssuer = "https://transaction.amorphie.sss.com.tr/";
+string JwtAudience = "https://transaction.amorphie.sss.com.tr/";
 
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole();
@@ -105,7 +105,7 @@ app.UseSwaggerUI();
 app.UseCors();
 
 app.MapPost("/security/create-token",
-[AllowAnonymous] async (PostCreateTransactionHubTokenRequest data,HttpContext context,IConfiguration configuration) =>
+[AllowAnonymous] async (PostCreateTransactionHubTokenRequest data, HttpContext context, IConfiguration configuration) =>
 {
 
     var loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
@@ -147,7 +147,7 @@ app.MapPost("/security/create-token",
 });
 
 app.MapPost("/transaction/publish-status",
-[AllowAnonymous] async Task<IResult> (PostPublishStatusRequest data, IHubContext<TransactionHub> hubContext) =>
+[AllowAnonymous] async Task<IResult>(PostPublishStatusRequest data, IHubContext < TransactionHub > hubContext) =>
 {
     await hubContext.Clients.User(data.id.ToString()).SendAsync("on-status-changed", data.status, data.reason, data.details);
 
@@ -189,7 +189,7 @@ public class TransactionHub : Hub
 
 public class NameUserIdProvider : IUserIdProvider
 {
-    public string GetUserId(HubConnectionContext connection) => 
+    public string GetUserId(HubConnectionContext connection) =>
     (connection?.User?.Identity?.Name ?? "");
 }
 
