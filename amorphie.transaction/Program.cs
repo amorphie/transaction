@@ -2,7 +2,7 @@ using amorphie.transaction.data;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
-System.Threading.Thread.Sleep(100);
+System.Threading.Thread.Sleep(500);
 await builder.Configuration.AddVaultSecrets(builder.Configuration["DAPR_SECRET_STORE_NAME"],new string[]{"DatabaseConnections","ServiceConnections"});
 
 
