@@ -14,7 +14,7 @@ RUN dotnet build "./amorphie.transaction/amorphie.transaction.csproj" -c Release
 
 FROM build AS publish
 RUN dotnet publish "./amorphie.transaction/amorphie.transaction.csproj" -c Release -o /app/publish
-
+ 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
