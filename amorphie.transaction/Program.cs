@@ -3,11 +3,11 @@ using amorphie.transaction.data;
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
-await builder.Configuration.AddVaultSecrets(builder.Configuration["DAPR_SECRET_STORE_NAME"],new string[]{"DatabaseConnections","ServiceConnections"});
+await builder.Configuration.AddVaultSecrets(builder.Configuration["DAPR_SECRET_STORE_NAME"], new string[] { "DatabaseConnections", "ServiceConnections" });
 
 
 builder.Services.AddDbContext<TransactionDBContext>
-   (options => options.UseNpgsql(builder.Configuration["TransactionDb"],t => t.MigrationsAssembly("amorphie.transaction.data")));
+   (options => options.UseNpgsql(builder.Configuration["TransactionDb"], t => t.MigrationsAssembly("amorphie.transaction.data")));
 
 
 
@@ -63,4 +63,3 @@ catch (Exception ex)
 }
 
 
-        
