@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
-
+ 
 RUN adduser -u 5679 --disabled-password --gecos "" amorphie-transactionuser && chown -R amorphie-transactionuser:amorphie-transactionuser /app
 USER amorphie-transactionuser
 
