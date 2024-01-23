@@ -2,9 +2,9 @@
 
 namespace amorphie.transaction.data.Api.MessagingGateway.Model
 {
-    public enum SendSmsResponseStatus 
+    public enum SendSmsResponseStatus
     {
-        Success = 200,        
+        Success = 200,
         HasBlacklistRecord = 460,
         SimChange = 461,
         OperatorChange = 462,
@@ -15,5 +15,5 @@ namespace amorphie.transaction.data.Api.MessagingGateway.Model
         MaximumCharactersCountExceed = 467,
     }
 
-   
+
 }

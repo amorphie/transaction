@@ -19,7 +19,7 @@ namespace amorphie.transaction.data.Api.MessagingGateway.Model
         [Required(AllowEmptyStrings = false)]
         public string Content { get; set; }
         public long? CustomerNo { get; set; }
-        [CitizenshipNo(10,11)]
+        [CitizenshipNo(10, 11)]
         public string? CitizenshipNo { get; set; }
         public string[] Tags { get; set; }
         public Process Process { get; set; }

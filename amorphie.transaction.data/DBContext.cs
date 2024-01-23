@@ -7,7 +7,7 @@ class TransactionDbContextFactory : IDesignTimeDbContextFactory<TransactionDBCon
     public TransactionDBContext CreateDbContext(string[] args)
     {
         var path = Directory.GetCurrentDirectory();
-            
+
         var builder = new DbContextOptionsBuilder<TransactionDBContext>();
         var connStr = "Host=localhost:5432;Database=transactions;Username=postgres;Password=postgres";
         builder.UseNpgsql(connStr);
@@ -137,13 +137,13 @@ public class Transaction
     public string Status { get; set; } = string.Empty;
     public string StatusReason { get; set; } = string.Empty;
 
-    public string RequestUpStreamUrl{get;set;} = string.Empty;
+    public string RequestUpStreamUrl { get; set; } = string.Empty;
     public string RequestUpstreamResponse { get; set; } = string.Empty;
     public string RequestUpstreamBody { get; set; } = string.Empty;
     public string RequestRouteResponse { get; set; } = string.Empty;
 
-    public MethodType OrderUpstreamType{get;set;} = MethodType.POST;
-    public string OrderUpStreamUrl{get;set;} = string.Empty;
+    public MethodType OrderUpstreamType { get; set; } = MethodType.POST;
+    public string OrderUpStreamUrl { get; set; } = string.Empty;
     public string OrderUpstreamResponse { get; set; } = string.Empty;
     public string OrderUpstreamBody { get; set; } = string.Empty;
     public string OrderRouteResponse { get; set; } = string.Empty;

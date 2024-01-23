@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json.Nodes;
 
-public record KeyVal(string Key,String Value);
+public record KeyVal(string Key, String Value);
 public record GetTransactionResponse(string Name);
 public record GetTransactionStatusResponse(Guid id, TransactionStatus status);
 
@@ -44,7 +44,7 @@ public record PostTransactionOrder(
 
 public record PostTransactionOrderResponse(WebHeaderCollection headers, dynamic responseBody);
 
-public record PostCommand(CommandType commandType,Dictionary<string,dynamic> details);
+public record PostCommand(CommandType commandType, Dictionary<string, dynamic> details);
 
 public record GetDefinitionResponse(Guid id, TransactionDefinition.MethodType requestUrlMethod, string requestUrlTemplate, TransactionDefinition.MethodType orderUrlMethod, string orderUrlTemplate, string client, string workflow, int ttl, GetDefinitionValidatorResponse[] validators);
 public record GetDefinitionValidatorResponse(Guid id, string RequestDataPath, string OrderDataPath, DataValidator.ComparerType type);

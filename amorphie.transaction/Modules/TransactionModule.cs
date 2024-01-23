@@ -99,7 +99,7 @@ public static class TransactionModule
 
 
     static async Task<IResult> getTransactionDefinition(
-        [FromQuery(Name="Url")]string requestOrOrderUrl,
+        [FromQuery(Name = "Url")] string requestOrOrderUrl,
         HttpRequest request,
         HttpContext httpContext,
         [FromServices] DaprClient client,
@@ -229,7 +229,8 @@ public static class TransactionModule
             return Results.NotFound("Transaction definition is not found. Please check url is exists in definitions.");
         }
 
-        var transaction = new Transaction(){
+        var transaction = new Transaction()
+        {
             CreatedAt = DateTime.UtcNow,
             Id = transactionId,
             Status = "Initialize",
@@ -253,9 +254,9 @@ public static class TransactionModule
 
         var generatedUpstreamUrl = data.upStreamUrl;
 
-        if(data.urlParams.Count > 0)
+        if (data.urlParams.Count > 0)
         {
-            foreach(var urlParam in data.urlParams)
+            foreach (var urlParam in data.urlParams)
             {
                 generatedUpstreamUrl += $"/{urlParam}";
             }
@@ -263,13 +264,13 @@ public static class TransactionModule
 
         if (data.method == TransactionDefinition.MethodType.GET)
         {
-            if(data.queryParams.Count > 0)
+            if (data.queryParams.Count > 0)
             {
                 var firstIterate = true;
                 generatedUpstreamUrl += "?";
-                foreach(var queryParam in data.queryParams)
+                foreach (var queryParam in data.queryParams)
                 {
-                    if(firstIterate)
+                    if (firstIterate)
                     {
                         generatedUpstreamUrl += $"{queryParam.Key}={queryParam.Value}";
                         firstIterate = false;
@@ -281,7 +282,7 @@ public static class TransactionModule
                 }
             }
             upHttpResponse = await httpClient.GetAsync(generatedUpstreamUrl);
-            
+
         }
         else
         {
@@ -295,7 +296,8 @@ public static class TransactionModule
         }
         catch (HttpRequestException ex)
         {
-            return Results.BadRequest(JsonSerializer.Serialize(new{
+            return Results.BadRequest(JsonSerializer.Serialize(new
+            {
                 StatusCode = (int)ex.StatusCode,
                 Message = await upHttpResponse.Content.ReadAsStringAsync()
             }));
@@ -307,13 +309,13 @@ public static class TransactionModule
         _app.Logger.LogInformation($"requestTransaction is called with {transactionId}");
 
         string requestBody = string.Empty;
-        if(data.method == TransactionDefinition.MethodType.GET)
+        if (data.method == TransactionDefinition.MethodType.GET)
         {
-            Dictionary<string,string> jsonValues = new();
-            
-            foreach(var queryParam in data.queryParams)
+            Dictionary<string, string> jsonValues = new();
+
+            foreach (var queryParam in data.queryParams)
             {
-                jsonValues.Add(queryParam.Key,queryParam.Value);
+                jsonValues.Add(queryParam.Key, queryParam.Value);
             }
             requestBody = JsonSerializer.Serialize(jsonValues);
         }
@@ -340,10 +342,10 @@ public static class TransactionModule
 
         var returnValue = new PostTransactionRequestResponse(
         upResponseData,
-        new PostTransactionRequestTransactionResponse(transactionId, workflowInstanceResult,configuration["TransactionHubUri"], token ));
+        new PostTransactionRequestTransactionResponse(transactionId, workflowInstanceResult, configuration["TransactionHubUri"], token));
 
         return Results.Ok(returnValue);
-       
+
     }
 
     static async Task<IResult> orderTransaction(
@@ -367,16 +369,16 @@ public static class TransactionModule
 
         var transaction = await dbContext!.Transactions!.Where(t => t.Id == transactionId).FirstOrDefaultAsync();
 
-        if(transaction == null)
+        if (transaction == null)
         {
             return Results.NotFound("Transaction is not found. Please check transaction is exists in active transactions.");
         }
 
-        var validateResponse = ValidatorHelper.ValidateRequests(transaction.RequestUpstreamBody,data.body.ToString(),definition.Validators!);
+        var validateResponse = ValidatorHelper.ValidateRequests(transaction.RequestUpstreamBody, data.body.ToString(), definition.Validators!);
 
-        if(validateResponse.IsSuccess != 1)
+        if (validateResponse.IsSuccess != 1)
         {
-            return Results.Conflict("Request and Order Parameters are Not Matched. Detail : "+validateResponse.Message);
+            return Results.Conflict("Request and Order Parameters are Not Matched. Detail : " + validateResponse.Message);
         }
 
         HttpResponseMessage upHttpResponse;
@@ -393,9 +395,9 @@ public static class TransactionModule
 
         var generatedUpstreamUrl = data.upStreamUrl;
 
-        if(data.urlParams.Count > 0)
+        if (data.urlParams.Count > 0)
         {
-            foreach(var urlParam in data.urlParams)
+            foreach (var urlParam in data.urlParams)
             {
                 generatedUpstreamUrl += $"/{urlParam}";
             }
@@ -403,13 +405,13 @@ public static class TransactionModule
 
         if (data.method == TransactionDefinition.MethodType.GET)
         {
-            if(data.queryParams.Count > 0)
+            if (data.queryParams.Count > 0)
             {
                 var firstIterate = true;
                 generatedUpstreamUrl += "?";
-                foreach(var queryParam in data.queryParams)
+                foreach (var queryParam in data.queryParams)
                 {
-                    if(firstIterate)
+                    if (firstIterate)
                     {
                         generatedUpstreamUrl += $"{queryParam.Key}={queryParam.Value}";
                         firstIterate = false;
@@ -419,14 +421,14 @@ public static class TransactionModule
                         generatedUpstreamUrl += $"&{queryParam.Key}={queryParam.Value}";
                     }
                 }
-            }            
+            }
         }
         else
         {
             JsonContent bodyContent = JsonContent.Create(data.body);
         }
 
-        transaction.OrderUpstreamType = (MethodType)data.method;        
+        transaction.OrderUpstreamType = (MethodType)data.method;
         transaction.OrderUpStreamUrl = generatedUpstreamUrl;
         transaction.OrderUpstreamBody = data.body.ToString();
 
@@ -445,14 +447,14 @@ public static class TransactionModule
         return Results.Ok();
     }
 
-    public static async Task<IResult> commandTransaction(IConfiguration configuration,[FromServices] DaprClient client,
-        [FromServices] TransactionDBContext dbContext,[FromRoute(Name = "transaction-id")] string transactionId, PostCommand body)
+    public static async Task<IResult> commandTransaction(IConfiguration configuration, [FromServices] DaprClient client,
+        [FromServices] TransactionDBContext dbContext, [FromRoute(Name = "transaction-id")] string transactionId, PostCommand body)
     {
         var stateStoreName = configuration["DAPR_STATE_STORE_NAME"];
 
-        if(body.commandType == CommandType.IvrResponse)
+        if (body.commandType == CommandType.IvrResponse)
         {
-            if(body.details["IvrResult"].ToString() == "Success")
+            if (body.details["IvrResult"].ToString() == "Success")
             {
                 dynamic messageData = new ExpandoObject();
                 dynamic variables = new ExpandoObject();
@@ -460,20 +462,20 @@ public static class TransactionModule
                 messageData.correlationKey = transactionId;
                 variables.IvrResult = body.details["IvrResult"];
                 messageData.variables = variables;
-                var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
+                var messageResult = await client.InvokeBindingAsync<dynamic, dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
             }
         }
 
-        if(body.commandType == CommandType.ApproveOtp)
+        if (body.commandType == CommandType.ApproveOtp)
         {
-            var cacheKey = transactionId+"|OtpValue";
-            var otpValue = await client.GetStateAsync<string>(stateStoreName,cacheKey);
-            if(otpValue == body.details["OtpValue"].ToString())
+            var cacheKey = transactionId + "|OtpValue";
+            var otpValue = await client.GetStateAsync<string>(stateStoreName, cacheKey);
+            if (otpValue == body.details["OtpValue"].ToString())
             {
                 dynamic messageData = new ExpandoObject();
                 messageData.messageName = "ValidateOtp";
                 messageData.correlationKey = transactionId;
-                var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
+                var messageResult = await client.InvokeBindingAsync<dynamic, dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
             }
             else
             {
@@ -481,18 +483,18 @@ public static class TransactionModule
             }
         }
 
-        if(body.commandType == CommandType.ReSendOtp)
+        if (body.commandType == CommandType.ReSendOtp)
         {
             dynamic messageData = new ExpandoObject();
             messageData.messageName = "ReSentOtp";
             messageData.correlationKey = transactionId;
 
-            var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
+            var messageResult = await client.InvokeBindingAsync<dynamic, dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "publish-message", messageData);
         }
 
-        if(body.commandType == CommandType.ZeebeSetVariables)
+        if (body.commandType == CommandType.ZeebeSetVariables)
         {
-            var messageResult = await client.InvokeBindingAsync<dynamic,dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "set-variables", body.details);
+            var messageResult = await client.InvokeBindingAsync<dynamic, dynamic>(configuration["DAPR_ZEEBE_COMMAND_NAME"], "set-variables", body.details);
         }
 
         return Results.Ok();
