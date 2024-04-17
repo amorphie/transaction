@@ -13,7 +13,7 @@ namespace amorphie.transaction.data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            
+
             migrationBuilder.AddColumn<int>(
                 name: "OrderUpstreamType",
                 table: "Transactions",
@@ -21,7 +21,7 @@ namespace amorphie.transaction.data.Migrations
                 nullable: false,
                 defaultValue: 0);
 
-            
+
         }
 
         /// <inheritdoc />
